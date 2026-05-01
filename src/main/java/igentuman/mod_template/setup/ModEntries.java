@@ -14,7 +14,7 @@ public class ModEntries {
     public static final ModEntry EXAMPLE_ITEM = addItem("example_item").build();
 
     public static final ModEntry EXAMPLE_MACHINE = addProcessor("example_machine")
-            .fluidCap(1,1)
+            .fluidCap(1,1, 0)
             .itemCap(1,0)
             .build();
 

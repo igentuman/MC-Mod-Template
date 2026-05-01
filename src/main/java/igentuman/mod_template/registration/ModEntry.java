@@ -1,7 +1,10 @@
 package igentuman.mod_template.registration;
 
+import igentuman.mod_template.recipe.UniversalProcessorRecipe;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -13,7 +16,10 @@ public record ModEntry (
         DeferredBlock<Block> block,
         DeferredItem<Item> item,
         DeferredHolder<MenuType<?>, MenuType<?>> menu,
-        DeferredHolder<BlockEntityType<?>, BlockEntityType<?>> blockEntity
+        DeferredHolder<BlockEntityType<?>, BlockEntityType<?>> blockEntity,
+        boolean hasRecipes,
+        DeferredHolder<RecipeType<?>, RecipeType<?>> recipeType,
+        DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> recipeSerializer
 ) {
 
     public boolean hasBlockEntity() {
@@ -26,6 +32,10 @@ public record ModEntry (
 
     public boolean hasBlock() {
         return block != null;
+    }
+
+    public boolean hasRecipes() {
+        return hasRecipes;
     }
 
     public boolean hasItem() {

@@ -3,6 +3,7 @@ package igentuman.mod_template;
 import igentuman.mod_template.config.Common;
 import igentuman.mod_template.setup.ModEntries;
 import igentuman.mod_template.setup.Registers;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 
 import static igentuman.mod_template.setup.Registers.BLOCKS;
@@ -91,5 +92,9 @@ public class Main {
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
+    }
+
+    public static ResourceLocation rl(String path) {
+        return ResourceLocation.fromNamespaceAndPath(MODID, path);
     }
 }
