@@ -18,10 +18,6 @@ public class ModEntries {
             .itemCap(1,0)
             .build();
 
-    public static final ModEntry OTHER_MACHINE = addProcessor("other_machine")
-            .itemCap(1,1)
-            .build();
-
     public static void init() {}
 
     public static ModEntry get(String name) {
