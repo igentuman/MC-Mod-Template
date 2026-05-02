@@ -1,12 +1,16 @@
 package igentuman.mod_template.registration;
 
-import igentuman.mod_template.api.registration.EnergyCapDefinition;
+import igentuman.mod_template.util.caps.EnergyCapDefinition;
 import igentuman.mod_template.block.UniversalProcessorBlock;
 import igentuman.mod_template.block_entity.UniversalProcessorBE;
 import igentuman.mod_template.container.UniversalProcessorContainer;
+import igentuman.mod_template.recipe.UniversalProcessorRecipe;
+import igentuman.mod_template.recipe.UniversalProcessorRecipeSerializer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.network.IContainerFactory;
 import net.minecraft.world.item.BlockItem;
@@ -23,6 +27,7 @@ import org.apache.commons.lang3.function.TriFunction;
 import java.util.function.Supplier;
 import java.util.function.Function;
 
+import static igentuman.mod_template.Main.rl;
 import static igentuman.mod_template.setup.ModEntries.ENTRIES;
 import static igentuman.mod_template.setup.Registers.*;
 
@@ -34,6 +39,8 @@ public class ModEntryBuilder {
     private Function<Block, Supplier<? extends BlockEntityType<?>>> entitySupplierFactory;
     private Supplier<MenuType<?>> menuType;
     private EnergyCapDefinition energy;
+    private Supplier<RecipeType<?>> recipeTypeSupplier;
+    private Supplier<RecipeSerializer<?>> recipeSerializerSupplier;
 
     private ModEntryBuilder(String name) {
         this.name = name;
@@ -56,7 +63,8 @@ public class ModEntryBuilder {
                 .block(UniversalProcessorBlock::new)
                 .blockEntity(UniversalProcessorBE::new)
                 .menu(UniversalProcessorContainer::new)
-                .withEnergyInput(100000);
+                .withEnergyInput(100000)
+                .withRecipes();
     }
 
     public <B extends Block> ModEntryBuilder block(Supplier<B> blockSupplier) {
@@ -93,11 +101,26 @@ public class ModEntryBuilder {
         return this;
     }
 
-    public ModEntryBuilder fluidCap(int inputTanks, int outputTanks) {
+    public ModEntryBuilder fluidCap(int inputTanks, int outputTanks, int defaultTanks) {
         return this;
     }
 
     public ModEntryBuilder itemCap(int inputSlots, int outputSlots) {
+        return this;
+    }
+
+    public ModEntryBuilder withRecipes() {
+        this.recipeTypeSupplier = () -> RecipeType.<UniversalProcessorRecipe>simple(rl(name));
+        this.recipeSerializerSupplier = () -> new UniversalProcessorRecipeSerializer(name);
+        return this;
+    }
+
+    public ModEntryBuilder withRecipes(
+            Supplier<RecipeType<?>> recipeTypeSupplier,
+            Supplier<RecipeSerializer<?>> recipeSerializerSupplier
+    ) {
+        this.recipeTypeSupplier = recipeTypeSupplier;
+        this.recipeSerializerSupplier = recipeSerializerSupplier;
         return this;
     }
 
@@ -106,6 +129,7 @@ public class ModEntryBuilder {
         DeferredItem<Item> item = null;
         DeferredHolder<MenuType<?>, MenuType<?>> menu = null;
         DeferredHolder<BlockEntityType<?>, BlockEntityType<?>> blockEntity = null;
+        DeferredHolder<RecipeType<?>, RecipeType<?>> recipeType = null;
         if (blockSupplier != null) {
             block = BLOCKS.register(name, blockSupplier);
         }
@@ -133,8 +157,23 @@ public class ModEntryBuilder {
                             (DeferredHolder<?, ?>) CONTAINERS.register(name, menuType);
             menu = menuCast;
         }
+        DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> recipeSerializer = null;
+        if (recipeTypeSupplier != null) {
+            @SuppressWarnings("unchecked")
+            DeferredHolder<RecipeType<?>, RecipeType<?>> recipeCast =
+                    (DeferredHolder<RecipeType<?>, RecipeType<?>>)
+                            (DeferredHolder<?, ?>) RECIPE_TYPES.register(name, recipeTypeSupplier);
+            recipeType = recipeCast;
+        }
+        if (recipeSerializerSupplier != null) {
+            @SuppressWarnings("unchecked")
+            DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> serializerCast =
+                    (DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>>)
+                            (DeferredHolder<?, ?>) RECIPE_SERIALIZERS.register(name, recipeSerializerSupplier);
+            recipeSerializer = serializerCast;
+        }
 
-        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity);
+        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer);
         ENTRIES.put(name, entry);
         return entry;
 

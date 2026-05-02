@@ -1,8 +1,10 @@
 package igentuman.mod_template;
 
 import igentuman.mod_template.config.Common;
+import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
 import igentuman.mod_template.setup.Registers;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 
 import static igentuman.mod_template.setup.Registers.BLOCKS;
@@ -54,11 +56,8 @@ public class Main {
             }).build());*/
 
     public Main(IEventBus modEventBus, ModContainer modContainer) {
-        // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
         Registers.init(modEventBus);
-        // Force ModEntries class loading so all DeferredRegister entries are added
-        // before RegisterEvent fires
         ModEntries.init();
         NeoForge.EVENT_BUS.register(this);
 
@@ -67,23 +66,30 @@ public class Main {
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
-        // Some common setup code
-        LOGGER.info("HELLO FROM COMMON SETUP");
 
-        if (Common.LOG_DIRT_BLOCK.getAsBoolean()) {
-            LOGGER.info("DIRT BLOCK >> {}", BuiltInRegistries.BLOCK.getKey(Blocks.DIRT));
-        }
-
-        LOGGER.info("{}{}", Common.MAGIC_NUMBER_INTRODUCTION.get(), Common.MAGIC_NUMBER.getAsInt());
-
-        Common.ITEM_STRINGS.get().forEach((item) -> LOGGER.info("ITEM >> {}", item));
     }
 
-    // Add the example block item to the building blocks tab
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
-/*        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
-            event.accept(EXAMPLE_BLOCK_ITEM);
-        }*/
+        for (ModEntry entry: ModEntries.ENTRIES.values()) {
+            if(entry.hasBlockEntity()) {
+                if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
+                    event.accept(entry.item());
+                }
+                continue;
+            }
+            if(entry.hasBlock()) {
+                if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
+                    event.accept(entry.item());
+                }
+                continue;
+            }
+            if(entry.hasItem()) {
+                if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
+                    event.accept(entry.item());
+                }
+                continue;
+            }
+        }
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -91,5 +97,9 @@ public class Main {
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
+    }
+
+    public static ResourceLocation rl(String path) {
+        return ResourceLocation.fromNamespaceAndPath(MODID, path);
     }
 }

@@ -1,4 +1,4 @@
-package igentuman.mod_template.api.registration;
+package igentuman.mod_template.util.caps;
 
 public class EnergyCapDefinition {
     private final int inputRate;

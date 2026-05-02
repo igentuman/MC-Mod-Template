@@ -1,13 +1,14 @@
-package igentuman.mod_template.api.registration;
+package igentuman.mod_template.util.caps;
 
 import java.util.HashSet;
 
 public class FluidCapDefinition {
-    public HashSet<Tank> inputTanks = new HashSet<>();
-    public HashSet<Tank> outputTanks = new HashSet<>();
+
+    public final HashSet<Tank> inputTanks = new HashSet<>();
+    public final HashSet<Tank> outputTanks = new HashSet<>();
+    public final HashSet<Tank> globalTanks = new HashSet<>();
 
     private FluidCapDefinition() {
-
     }
 
     public static FluidCapDefinition create() {
@@ -25,6 +26,11 @@ public class FluidCapDefinition {
 
     public FluidCapDefinition addOutput(int capacity) {
         outputTanks.add(new Tank(capacity));
+        return this;
+    }
+
+    public FluidCapDefinition addGlobal(int capacity) {
+        globalTanks.add(new Tank(capacity));
         return this;
     }
 
