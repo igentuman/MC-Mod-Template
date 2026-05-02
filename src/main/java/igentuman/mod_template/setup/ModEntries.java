@@ -21,7 +21,7 @@ public class ModEntries {
             .itemCap(1,0)
             .build();
 
-    public static final ModEntry NICKEL = addMetalOreMaterial("silver", Color.LIGHT_GRAY.getRGB()).build();
+    public static final ModEntry SILVER = addMetalOreMaterial("silver", Color.LIGHT_GRAY.getRGB()).build();
 
     public static void init() {}
 

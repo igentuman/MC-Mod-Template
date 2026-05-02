@@ -49,6 +49,14 @@ public class ModLanguageProvider  extends LanguageProvider {
                 if (materialEntry.hasNugget()) {
                     add(materialEntry.nugget().get(), convertToName(materialEntry.name + "_nugget"));
                 }
+                if (materialEntry.hasFluid()) {
+                    var fluid = materialEntry.materialFluid();
+                    String fluidName = materialEntry.fluidDefinition.isMolten
+                            ? "molten_" + materialEntry.name
+                            : materialEntry.name + "_fluid";
+                    add(fluid.bucket().get(), convertToName(fluidName + "_bucket"));
+                    add("fluid_type.modtemplate." + fluidName, convertToName(fluidName));
+                }
             }
         }
     }

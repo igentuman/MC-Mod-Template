@@ -88,6 +88,9 @@ public class Main {
                     if (mat.hasPlate()) event.accept(mat.plate());
                     if (mat.hasNugget()) event.accept(mat.nugget());
                 }
+                if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
+                    if (mat.hasFluid()) event.accept(mat.bucket());
+                }
                 continue;
             }
             if(entry.hasBlockEntity()) {

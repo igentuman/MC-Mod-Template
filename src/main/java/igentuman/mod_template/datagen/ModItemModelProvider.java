@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
+import net.neoforged.neoforge.client.model.generators.loaders.DynamicFluidContainerModelBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.registries.DeferredItem;
 
@@ -52,6 +53,13 @@ public class ModItemModelProvider  extends ItemModelProvider {
                 }
                 if (materialEntry.hasNugget()) {
                     simpleItem(materialEntry.nugget(), "material/nugget/" + materialEntry.name);
+                }
+                if (materialEntry.hasFluid()) {
+                    var fluid = materialEntry.materialFluid();
+                    ResourceLocation bucketKey = BuiltInRegistries.ITEM.getKey(fluid.bucket().asItem());
+                    withExistingParent(bucketKey.toString(), "neoforge:item/bucket")
+                            .customLoader(DynamicFluidContainerModelBuilder::begin)
+                            .fluid(fluid.source().get());
                 }
             }
         }

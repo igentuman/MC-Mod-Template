@@ -1,18 +1,25 @@
 package igentuman.mod_template.registration;
 
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.MapColor;
+import net.neoforged.neoforge.fluids.BaseFlowingFluid;
+import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.DeferredBlock;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import java.util.function.Supplier;
 
-import static igentuman.mod_template.setup.Registers.BLOCKS;
-import static igentuman.mod_template.setup.Registers.ITEMS;
+import static igentuman.mod_template.setup.Registers.*;
 
 public class MaterialEntry {
 
@@ -29,7 +36,8 @@ public class MaterialEntry {
     private Supplier<? extends Item> dustSupplier;
     private Supplier<? extends Item> plateSupplier;
     private Supplier<? extends Item> nuggetSupplier;
-    private Supplier<? extends Item> fluid;
+
+    public FluidDefinition fluidDefinition = null;
 
     private RegisteredEntry entry;
 
@@ -37,8 +45,6 @@ public class MaterialEntry {
         this.name = name;
         this.color = color;
     }
-
-    public FluidDefinition fluidDefinition = null;
 
     private MaterialEntry(int color, String name) {
         this.color = color;
@@ -91,15 +97,20 @@ public class MaterialEntry {
         return this;
     }
 
-    public MaterialEntry setFluid(Supplier<? extends Item> fluid) {
-        this.fluid = fluid;
-        return this;
-    }
-
     public MaterialEntry setFluidDefinition(FluidDefinition fluidDefinition) {
         this.fluidDefinition = fluidDefinition;
         return this;
     }
+
+    public MaterialEntry noIngot() { this.ingotSupplier = null; return this; }
+    public MaterialEntry noGem() { this.gemSupplier = null; return this; }
+    public MaterialEntry noBlock() { this.storageBlockSupplier = null; this.storageItemSupplier = null; return this; }
+    public MaterialEntry noOre() { this.oreBlockSupplier = null; this.oreItemSupplier = null; return this; }
+    public MaterialEntry noDust() { this.dustSupplier = null; return this; }
+    public MaterialEntry noNugget() { this.nuggetSupplier = null; return this; }
+    public MaterialEntry noRawOre() { this.rawOreSupplier = null; return this; }
+    public MaterialEntry noPlate() { this.plateSupplier = null; return this; }
+    public MaterialEntry noFluid() { this.fluidDefinition = null; return this; }
 
     public boolean hasIngot() { return ingotSupplier != null; }
     public boolean hasGem() { return gemSupplier != null; }
@@ -109,7 +120,7 @@ public class MaterialEntry {
     public boolean hasNugget() { return nuggetSupplier != null; }
     public boolean hasRawOre() { return rawOreSupplier != null; }
     public boolean hasPlate() { return plateSupplier != null; }
-    public boolean hasFluid() { return fluid != null; }
+    public boolean hasFluid() { return fluidDefinition != null; }
 
     public DeferredBlock<Block> oreBlock() { return entry.oreBlock(); }
     public DeferredBlock<Block> storageBlock() { return entry.storageBlock(); }
@@ -121,7 +132,8 @@ public class MaterialEntry {
     public DeferredItem<Item> dust() { return entry.dust(); }
     public DeferredItem<Item> plate() { return entry.plate(); }
     public DeferredItem<Item> nugget() { return entry.nugget(); }
-    public DeferredItem<Item> fluid() { return entry.fluid(); }
+    public DeferredItem<Item> bucket() { return entry.bucket(); }
+    public MaterialFluid materialFluid() { return entry.materialFluid(); }
 
     public MaterialEntry metalOre() {
         BlockBehaviour.Properties oreProps = BlockBehaviour.Properties.of()
@@ -144,6 +156,9 @@ public class MaterialEntry {
         this.setRawOreSupplier(() -> new Item(new Item.Properties()));
 
         this.setBlock(() -> new Block(blockProps), () -> new BlockItem(new Block(blockProps), new Item.Properties()));
+
+        // Molten metal fluid by default
+        this.setFluidDefinition(FluidDefinition.metal());
 
         return this;
     }
@@ -173,6 +188,7 @@ public class MaterialEntry {
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     public MaterialEntry build() {
         DeferredBlock<Block> regOreBlock = null;
         DeferredItem<BlockItem> regOreItem = null;
@@ -184,7 +200,8 @@ public class MaterialEntry {
         DeferredItem<Item> regDust = null;
         DeferredItem<Item> regPlate = null;
         DeferredItem<Item> regNugget = null;
-        DeferredItem<Item> regFluid = null;
+        DeferredItem<Item> regBucket = null;
+        MaterialFluid regMaterialFluid = null;
 
         if (oreBlockSupplier != null) {
             regOreBlock = BLOCKS.register(name + "_ore", oreBlockSupplier);
@@ -214,8 +231,11 @@ public class MaterialEntry {
         if (nuggetSupplier != null) {
             regNugget = ITEMS.register(name + "_nugget", nuggetSupplier);
         }
-        if (fluid != null) {
-            regFluid = ITEMS.register(name + "_bucket", fluid);
+
+        // Register fluid (FluidType + source + flowing + block + bucket)
+        if (fluidDefinition != null) {
+            regMaterialFluid = registerFluid(fluidDefinition);
+            regBucket = regMaterialFluid.bucket();
         }
 
         entry = new RegisteredEntry(
@@ -224,9 +244,73 @@ public class MaterialEntry {
                 regStorageBlock, regStorageItem,
                 regIngot, regGem, regRawOre,
                 regDust, regPlate, regNugget,
-                regFluid
+                regBucket, regMaterialFluid
         );
         return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    private MaterialFluid registerFluid(FluidDefinition def) {
+        String fluidName = def.isMolten ? "molten_" + name : name + "_fluid";
+
+        // Register the FluidType
+        DeferredHolder<FluidType, FluidType> fluidType = (DeferredHolder<FluidType, FluidType>)
+                (DeferredHolder<?, ?>) FLUID_TYPES.register(fluidName, () -> new MaterialFluidType(
+                        FluidType.Properties.create()
+                                .temperature(def.temperature)
+                                .density(def.density)
+                                .viscosity(def.viscosity)
+                                .lightLevel(def.luminosity),
+                        color
+                ));
+
+        // Array holders to break circular reference between source <-> flowing
+        final DeferredHolder<Fluid, FlowingFluid>[] sourceHolder = new DeferredHolder[1];
+        final DeferredHolder<Fluid, FlowingFluid>[] flowingHolder = new DeferredHolder[1];
+        final DeferredBlock<LiquidBlock>[] blockHolder = new DeferredBlock[1];
+        final DeferredItem<Item>[] bucketHolder = new DeferredItem[1];
+
+        // Supplier that creates fresh Properties each time (all references resolved lazily)
+        Supplier<BaseFlowingFluid.Properties> propsSupplier = () -> new BaseFlowingFluid.Properties(
+                fluidType::get,
+                () -> sourceHolder[0].get(),
+                () -> flowingHolder[0].get()
+        ).block(() -> blockHolder[0].get()).bucket(() -> bucketHolder[0].get());
+
+        // Register source and flowing fluids
+        sourceHolder[0] = (DeferredHolder<Fluid, FlowingFluid>)
+                (DeferredHolder<?, ?>) FLUIDS.register(fluidName,
+                        () -> new BaseFlowingFluid.Source(propsSupplier.get()));
+
+        flowingHolder[0] = (DeferredHolder<Fluid, FlowingFluid>)
+                (DeferredHolder<?, ?>) FLUIDS.register("flowing_" + fluidName,
+                        () -> new BaseFlowingFluid.Flowing(propsSupplier.get()));
+
+        // Register fluid block
+        blockHolder[0] = (DeferredBlock<LiquidBlock>)
+                (DeferredBlock<?>) BLOCKS.register(fluidName + "_block", () -> new LiquidBlock(
+                        sourceHolder[0].get(),
+                        BlockBehaviour.Properties.of()
+                                .noCollission()
+                                .strength(100.0F)
+                                .noLootTable()
+                                .liquid()
+                                .replaceable()
+                ));
+
+        // Register bucket item
+        bucketHolder[0] = ITEMS.register(fluidName + "_bucket", () -> new BucketItem(
+                sourceHolder[0].get(),
+                new Item.Properties()
+                        .craftRemainder(Items.BUCKET)
+                        .stacksTo(1)
+        ));
+
+        MaterialFluid materialFluid = new MaterialFluid(
+                fluidType, sourceHolder[0], flowingHolder[0], blockHolder[0], bucketHolder[0]
+        );
+        def.setRegisteredFluid(materialFluid);
+        return materialFluid;
     }
 
     public record RegisteredEntry(
@@ -243,7 +327,8 @@ public class MaterialEntry {
             DeferredItem<Item> dust,
             DeferredItem<Item> plate,
             DeferredItem<Item> nugget,
-            DeferredItem<Item> fluid
+            DeferredItem<Item> bucket,
+            MaterialFluid materialFluid
     ) {
         public boolean hasOre() { return oreBlock != null; }
         public boolean hasBlock() { return storageBlock != null; }
@@ -253,6 +338,7 @@ public class MaterialEntry {
         public boolean hasDust() { return dust != null; }
         public boolean hasPlate() { return plate != null; }
         public boolean hasNugget() { return nugget != null; }
-        public boolean hasFluid() { return fluid != null; }
+        public boolean hasBucket() { return bucket != null; }
+        public boolean hasFluid() { return materialFluid != null; }
     }
 }

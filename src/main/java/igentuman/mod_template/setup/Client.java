@@ -2,9 +2,14 @@ package igentuman.mod_template.setup;
 
 import igentuman.mod_template.Main;
 import igentuman.mod_template.container.UniversalProcessorContainer;
+import igentuman.mod_template.registration.MaterialEntry;
+import igentuman.mod_template.registration.MaterialFluidType;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.screen.UniversalProcessorScreen;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -12,7 +17,10 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
@@ -41,5 +49,43 @@ public class Client {
                         (MenuType<UniversalProcessorContainer>) (MenuType<?>) entry.menu().get(),
                         UniversalProcessorScreen::new
                 ));
+    }
+
+    /**
+     * Register client-side fluid rendering extensions (textures + tint color).
+     */
+    @SubscribeEvent
+    static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        for (ModEntry entry : ModEntries.ENTRIES.values()) {
+            if (entry.materialEntry() instanceof MaterialEntry mat && mat.hasFluid()) {
+                var materialFluid = mat.materialFluid();
+                var fluidType = materialFluid.fluidType().get();
+
+                if (fluidType instanceof MaterialFluidType mft) {
+                    event.registerFluidType(new IClientFluidTypeExtensions() {
+                        @Override
+                        public ResourceLocation getStillTexture() {
+                            return mft.getStillTexture();
+                        }
+
+                        @Override
+                        public ResourceLocation getFlowingTexture() {
+                            return mft.getFlowingTexture();
+                        }
+
+                        @Override
+                        public ResourceLocation getOverlayTexture() {
+                            return mft.getOverlayTexture();
+                        }
+
+                        @Override
+                        public int getTintColor() {
+                            // ARGB format: full alpha + material color
+                            return 0xFF000000 | mft.getTintColor();
+                        }
+                    }, fluidType);
+                }
+            }
+        }
     }
 }
