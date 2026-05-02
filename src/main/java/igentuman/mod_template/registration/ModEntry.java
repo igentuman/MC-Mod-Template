@@ -1,6 +1,5 @@
 package igentuman.mod_template.registration;
 
-import igentuman.mod_template.recipe.UniversalProcessorRecipe;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -19,7 +18,8 @@ public record ModEntry (
         DeferredHolder<BlockEntityType<?>, BlockEntityType<?>> blockEntity,
         boolean hasRecipes,
         DeferredHolder<RecipeType<?>, RecipeType<?>> recipeType,
-        DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> recipeSerializer
+        DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> recipeSerializer,
+        MaterialEntry materialEntry
 ) {
 
     public boolean hasBlockEntity() {

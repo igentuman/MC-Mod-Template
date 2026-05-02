@@ -71,6 +71,25 @@ public class Main {
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         for (ModEntry entry: ModEntries.ENTRIES.values()) {
+            // Handle material entries (ores, ingots, blocks, etc.)
+            if (entry.materialEntry() != null) {
+                var mat = entry.materialEntry();
+                if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) {
+                    if (mat.hasOre()) event.accept(mat.oreItem());
+                    if (mat.hasRawOre()) event.accept(mat.rawOre());
+                }
+                if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
+                    if (mat.hasBlock()) event.accept(mat.storageItem());
+                }
+                if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
+                    if (mat.hasIngot()) event.accept(mat.ingot());
+                    if (mat.hasGem()) event.accept(mat.gem());
+                    if (mat.hasDust()) event.accept(mat.dust());
+                    if (mat.hasPlate()) event.accept(mat.plate());
+                    if (mat.hasNugget()) event.accept(mat.nugget());
+                }
+                continue;
+            }
             if(entry.hasBlockEntity()) {
                 if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
                     event.accept(entry.item());

@@ -1,8 +1,11 @@
 package igentuman.mod_template.setup;
 
 import igentuman.mod_template.registration.ModEntry;
+import igentuman.mod_template.registration.ModEntryBuilder;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+
+import java.awt.*;
 import java.util.HashMap;
 
 import static igentuman.mod_template.registration.ModEntryBuilder.*;
@@ -18,9 +21,11 @@ public class ModEntries {
             .itemCap(1,0)
             .build();
 
+    public static final ModEntry NICKEL = addMetalOreMaterial("silver", Color.LIGHT_GRAY.getRGB()).build();
+
     public static void init() {}
 
     public static ModEntry get(String name) {
-        return ENTRIES.get(name);
+        return ENTRIES.getOrDefault(name, null);
     }
 }

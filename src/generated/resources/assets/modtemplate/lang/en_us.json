@@ -1,4 +1,11 @@
 {
   "block.modtemplate.example_machine": "Example Machine",
-  "item.modtemplate.example_item": "Example Item"
+  "block.modtemplate.silver_block": "Silver Block",
+  "block.modtemplate.silver_ore": "Silver Ore",
+  "item.modtemplate.example_item": "Example Item",
+  "item.modtemplate.raw_silver": "Raw Silver",
+  "item.modtemplate.silver_dust": "Silver DUst",
+  "item.modtemplate.silver_ingot": "Silver Ingot",
+  "item.modtemplate.silver_nugget": "Silver Nugget",
+  "item.modtemplate.silver_plate": "Silver Plate"
 }

@@ -41,6 +41,7 @@ public class ModEntryBuilder {
     private EnergyCapDefinition energy;
     private Supplier<RecipeType<?>> recipeTypeSupplier;
     private Supplier<RecipeSerializer<?>> recipeSerializerSupplier;
+    public MaterialEntry material;
 
     private ModEntryBuilder(String name) {
         this.name = name;
@@ -56,6 +57,18 @@ public class ModEntryBuilder {
 
     public static ModEntryBuilder addItem(String name, Supplier<? extends Item> itemSupplier) {
         return add(name).item(itemSupplier);
+    }
+
+    public static ModEntryBuilder addMetalOreMaterial(String name, int color) {
+        ModEntryBuilder materialEntry = add(name)
+                .material(color);
+        materialEntry.material.metalOre();
+        return materialEntry;
+    }
+
+    public ModEntryBuilder material(int color) {
+        material = MaterialEntry.of(color, name);
+        return this;
     }
 
     public static ModEntryBuilder addProcessor(String name) {
@@ -139,7 +152,7 @@ public class ModEntryBuilder {
         // Register item - use provided supplier or create BlockItem
         if (itemSupplier != null) {
             item = ITEMS.register(name, itemSupplier);
-        } else {
+        } else if(finalBlock != null) {
             item = ITEMS.register(name, () -> new BlockItem(finalBlock.get(), new Item.Properties()));
         }
 
@@ -173,7 +186,11 @@ public class ModEntryBuilder {
             recipeSerializer = serializerCast;
         }
 
-        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer);
+        if (material != null) {
+            material.build();
+        }
+
+        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer, material);
         ENTRIES.put(name, entry);
         return entry;
 

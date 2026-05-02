@@ -1,5 +1,6 @@
 package igentuman.mod_template.datagen;
 
+import igentuman.mod_template.registration.MaterialEntry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -26,6 +27,32 @@ public class ModItemModelProvider  extends ItemModelProvider {
                 withExistingParent(entry.name(), modLoc("block/" + entry.name()));
             } else if (entry.hasItem()) {
                 simpleItem(entry.item(), entry.name());
+            }
+            if (entry.materialEntry() instanceof MaterialEntry materialEntry) {
+                if (materialEntry.hasBlock()) {
+                    withExistingParent(materialEntry.name + "_block", modLoc("block/" + materialEntry.name + "_block"));
+                }
+                if (materialEntry.hasOre()) {
+                    withExistingParent(materialEntry.name + "_ore", modLoc("block/" + materialEntry.name + "_ore"));
+                }
+                if (materialEntry.hasIngot()) {
+                    simpleItem(materialEntry.ingot(), "material/ingot/" + materialEntry.name);
+                }
+                if (materialEntry.hasGem()) {
+                    simpleItem(materialEntry.gem(), "material/gem/" + materialEntry.name);
+                }
+                if (materialEntry.hasRawOre()) {
+                    simpleItem(materialEntry.rawOre(), "material/raw/" + materialEntry.name);
+                }
+                if (materialEntry.hasDust()) {
+                    simpleItem(materialEntry.dust(), "material/dust/" + materialEntry.name);
+                }
+                if (materialEntry.hasPlate()) {
+                    simpleItem(materialEntry.plate(), "material/plate/" + materialEntry.name);
+                }
+                if (materialEntry.hasNugget()) {
+                    simpleItem(materialEntry.nugget(), "material/nugget/" + materialEntry.name);
+                }
             }
         }
     }
