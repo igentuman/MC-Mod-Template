@@ -1,7 +1,10 @@
 package igentuman.mod_template.datagen.tag;
 
+import igentuman.mod_template.registration.ModEntry;
+import igentuman.mod_template.setup.ModEntries;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
+import net.minecraft.tags.BlockTags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
@@ -16,6 +19,11 @@ public class ModBlockTagProvider extends BlockTagsProvider {
 
     @Override
     public void addTags(HolderLookup.Provider provider) {
-
+        for (ModEntry entry : ModEntries.ENTRIES.values()) {
+            if (entry.hasBlock()) {
+                tag(BlockTags.MINEABLE_WITH_PICKAXE).add(entry.block().get());
+                tag(BlockTags.NEEDS_IRON_TOOL).add(entry.block().get());
+            }
+        }
     }
 }
