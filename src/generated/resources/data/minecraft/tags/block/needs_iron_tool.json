@@ -1,5 +1,7 @@
 {
   "values": [
-    "modtemplate:example_machine"
+    "modtemplate:example_machine",
+    "modtemplate:silver_ore",
+    "modtemplate:silver_block"
   ]
 }

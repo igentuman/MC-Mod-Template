@@ -1,10 +1,15 @@
 package igentuman.mod_template.datagen.tag;
 
+import igentuman.mod_template.registration.MaterialEntry;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
@@ -24,6 +29,29 @@ public class ModBlockTagProvider extends BlockTagsProvider {
                 tag(BlockTags.MINEABLE_WITH_PICKAXE).add(entry.block().get());
                 tag(BlockTags.NEEDS_IRON_TOOL).add(entry.block().get());
             }
+
+            MaterialEntry material = entry.materialEntry();
+            if (material == null) continue;
+
+            String name = material.name;
+
+            if (material.hasOre()) {
+                tag(BlockTags.MINEABLE_WITH_PICKAXE).add(material.oreBlock().get());
+                tag(BlockTags.NEEDS_IRON_TOOL).add(material.oreBlock().get());
+                tag(Tags.Blocks.ORES).add(material.oreBlock().get());
+                tag(blockTag("ores/" + name)).add(material.oreBlock().get());
+            }
+
+            if (material.hasBlock()) {
+                tag(BlockTags.MINEABLE_WITH_PICKAXE).add(material.storageBlock().get());
+                tag(BlockTags.NEEDS_IRON_TOOL).add(material.storageBlock().get());
+                tag(Tags.Blocks.STORAGE_BLOCKS).add(material.storageBlock().get());
+                tag(blockTag("storage_blocks/" + name)).add(material.storageBlock().get());
+            }
         }
+    }
+
+    private static TagKey<Block> blockTag(String path) {
+        return BlockTags.create(ResourceLocation.fromNamespaceAndPath("c", path));
     }
 }
