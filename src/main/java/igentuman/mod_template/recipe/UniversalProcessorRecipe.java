@@ -101,6 +101,11 @@ public class UniversalProcessorRecipe implements Recipe<ProcessorRecipeInput> {
         return ModEntries.get(processorName).recipeType().get();
     }
 
+    @Override
+    public boolean isSpecial() {
+        return true;
+    }
+
     // --- Getters ---
 
     public String getProcessorName() {

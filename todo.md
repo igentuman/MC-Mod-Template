@@ -5,8 +5,8 @@
 - Menu and screen will use it for slot positions
 
 ## Materials Registration
-- New type `MaterialEntry` - single place to register a material (e.g. platinum)
-- Flag which components to register: ingot, block, ore, liquid, plate, etc.
+- ~~New type `MaterialEntry` - single place to register a material (e.g. platinum)~~
+- ~~Flag which components to register: ingot, block, ore, liquid, plate, etc.~~
 - Include world gen settings if needed
 
 ## Networking Support
@@ -20,10 +20,11 @@
 - Integrate capabilities to `UniversalProcessor`
 
 ## Example Recipes
-- Add actual example recipes for `UniversalProcessor` for testing
+- ~~Add actual example recipes for `UniversalProcessor` for testing~~
 
 ## JEI/EMI Recipe Categories
-- Autopopulate recipe categories for JEI/EMI
+- ~~Autopopulate recipe categories for JEI/EMI~~
+- Only JEI added for now
 
 ## Multiblock Entry Builder
 - Introduce multiblock entry builder

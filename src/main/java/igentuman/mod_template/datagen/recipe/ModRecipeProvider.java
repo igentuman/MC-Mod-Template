@@ -22,6 +22,7 @@ public class ModRecipeProvider  extends RecipeProvider implements IConditionBuil
     @Override
     public void buildRecipes(RecipeOutput recipeOutput) {
 
+        ExampleMachineRecipes.generate(recipeOutput);
 /*        ShapedRecipeBuilder.shaped(MISC, EXAMPLE_ITEM.item())
                 .pattern(" S ")
                 .pattern("WEW")

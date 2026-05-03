@@ -42,10 +42,10 @@ public class UniversalProcessorRecipeSerializer implements RecipeSerializer<Univ
                         .optionalFieldOf("fluid_outputs", List.of())
                         .forGetter(UniversalProcessorRecipe::getFluidOutputs),
                 Codec.INT
-                        .optionalFieldOf("process_time", 200)
+                        .fieldOf("process_time")
                         .forGetter(UniversalProcessorRecipe::getProcessTime),
                 Codec.INT
-                        .optionalFieldOf("energy_per_tick", 20)
+                        .fieldOf("energy_per_tick")
                         .forGetter(UniversalProcessorRecipe::getEnergyPerTick)
         ).apply(inst, (itemIn, fluidIn, itemOut, fluidOut, time, energy) ->
                 new UniversalProcessorRecipe(processorName, itemIn, fluidIn, itemOut, fluidOut, time, energy)

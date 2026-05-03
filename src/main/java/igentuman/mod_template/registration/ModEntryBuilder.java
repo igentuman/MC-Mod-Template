@@ -1,6 +1,8 @@
 package igentuman.mod_template.registration;
 
 import igentuman.mod_template.util.caps.EnergyCapDefinition;
+import igentuman.mod_template.util.caps.FluidCapDefinition;
+import igentuman.mod_template.util.caps.ItemCapDefinition;
 import igentuman.mod_template.block.UniversalProcessorBlock;
 import igentuman.mod_template.block_entity.UniversalProcessorBE;
 import igentuman.mod_template.container.UniversalProcessorContainer;
@@ -39,6 +41,8 @@ public class ModEntryBuilder {
     private Function<Block, Supplier<? extends BlockEntityType<?>>> entitySupplierFactory;
     private Supplier<MenuType<?>> menuType;
     private EnergyCapDefinition energy;
+    private ItemCapDefinition itemCapDefinition;
+    private FluidCapDefinition fluidCapDefinition;
     private Supplier<RecipeType<?>> recipeTypeSupplier;
     private Supplier<RecipeSerializer<?>> recipeSerializerSupplier;
     public MaterialEntry material;
@@ -115,10 +119,16 @@ public class ModEntryBuilder {
     }
 
     public ModEntryBuilder fluidCap(int inputTanks, int outputTanks, int defaultTanks) {
+        FluidCapDefinition def = FluidCapDefinition.create();
+        for (int i = 0; i < inputTanks; i++) def.addInput(100000);
+        for (int i = 0; i < outputTanks; i++) def.addOutput(100000);
+        for (int i = 0; i < defaultTanks; i++) def.addGlobal(100000);
+        this.fluidCapDefinition = def;
         return this;
     }
 
     public ModEntryBuilder itemCap(int inputSlots, int outputSlots) {
+        this.itemCapDefinition = ItemCapDefinition.create().inputs(inputSlots).outputs(outputSlots);
         return this;
     }
 
@@ -190,7 +200,7 @@ public class ModEntryBuilder {
             material.build();
         }
 
-        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer, material);
+        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer, material, itemCapDefinition, fluidCapDefinition);
         ENTRIES.put(name, entry);
         return entry;
 
