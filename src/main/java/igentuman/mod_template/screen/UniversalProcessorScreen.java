@@ -8,15 +8,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
+import static igentuman.mod_template.Main.rl;
+
 public class UniversalProcessorScreen extends AbstractContainerScreen<UniversalProcessorContainer> {
 
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Main.MODID, "textures/gui/example_gui.png");
+    private static final ResourceLocation TEXTURE = rl("textures/gui/processor.png");
 
     public UniversalProcessorScreen(UniversalProcessorContainer menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
+        imageWidth = 180;
+        imageHeight = 180;
     }
 
     @Override

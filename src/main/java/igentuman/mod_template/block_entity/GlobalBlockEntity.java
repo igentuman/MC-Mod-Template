@@ -3,6 +3,7 @@ package igentuman.mod_template.block_entity;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
 import igentuman.mod_template.util.NBTField;
+import igentuman.mod_template.util.caps.EnergyCapDefinition;
 import igentuman.mod_template.util.caps.FluidCapDefinition;
 import igentuman.mod_template.util.caps.ItemCapDefinition;
 import net.minecraft.core.BlockPos;
@@ -16,6 +17,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.energy.EnergyStorage;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -43,6 +46,10 @@ public class GlobalBlockEntity extends BlockEntity {
 
     /** Total number of fluid tanks (0 if no fluid cap). */
     public final int tankCount;
+
+    /** Energy storage capability - null if no energy cap is defined in the ModEntry. */
+    @Nullable
+    public final EnergyStorage energyStorage;
 
     private final List<Field> booleanFields;
     private final List<Field> intFields;
@@ -79,6 +86,10 @@ public class GlobalBlockEntity extends BlockEntity {
         return fluidTanks != null && fluidTanks.length > 0;
     }
 
+    public boolean hasEnergyStorage() {
+        return energyStorage != null;
+    }
+
     /**
      * Returns the IItemHandler for the given side.
      * Currently exposes the full inventory from all sides.
@@ -97,6 +108,15 @@ public class GlobalBlockEntity extends BlockEntity {
         if (fluidTanks == null || fluidTanks.length == 0) return null;
         if (fluidTanks.length == 1) return fluidTanks[0];
         return new igentuman.mod_template.util.caps.CombinedFluidHandler(fluidTanks);
+    }
+
+    /**
+     * Returns the IEnergyStorage for the given side.
+     * Currently exposes the energy storage from all sides.
+     */
+    @Nullable
+    public IEnergyStorage getEnergyHandler(@Nullable Direction side) {
+        return energyStorage;
     }
 
     public GlobalBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState, String name) {
@@ -166,6 +186,37 @@ public class GlobalBlockEntity extends BlockEntity {
         } else {
             this.fluidTanks = null;
             this.tankCount = 0;
+        }
+
+        // Initialize energy storage from ModEntry's energyCap definition
+        EnergyCapDefinition energyCapDef = null;
+        if (name != null) {
+            ModEntry energyEntry = ModEntries.get(name);
+            if (energyEntry != null && energyEntry.energyCap() != null) {
+                energyCapDef = energyEntry.energyCap();
+            }
+        }
+        if (energyCapDef != null) {
+            final int cap = energyCapDef.getCapacity();
+            final int maxIn = energyCapDef.getInputRate();
+            final int maxOut = energyCapDef.getOutputRate();
+            this.energyStorage = new EnergyStorage(cap, maxIn, maxOut) {
+                @Override
+                public int receiveEnergy(int toReceive, boolean simulate) {
+                    int result = super.receiveEnergy(toReceive, simulate);
+                    if (!simulate && result > 0) setChanged();
+                    return result;
+                }
+
+                @Override
+                public int extractEnergy(int toExtract, boolean simulate) {
+                    int result = super.extractEnergy(toExtract, simulate);
+                    if (!simulate && result > 0) setChanged();
+                    return result;
+                }
+            };
+        } else {
+            this.energyStorage = null;
         }
 
         directionFields = initFields(Direction.class);
@@ -421,6 +472,9 @@ public class GlobalBlockEntity extends BlockEntity {
             }
             tag.put("FluidTanks", tankList);
         }
+        if (energyStorage != null) {
+            tag.put("Energy", energyStorage.serializeNBT(registries));
+        }
     }
 
     @Override
@@ -435,6 +489,9 @@ public class GlobalBlockEntity extends BlockEntity {
             for (int i = 0; i < Math.min(tankList.size(), fluidTanks.length); i++) {
                 fluidTanks[i].readFromNBT(registries, tankList.getCompound(i));
             }
+        }
+        if (energyStorage != null && tag.contains("Energy")) {
+            energyStorage.deserializeNBT(registries, tag.get("Energy"));
         }
     }
 

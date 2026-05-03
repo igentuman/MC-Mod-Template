@@ -1,5 +1,6 @@
 package igentuman.mod_template.registration;
 
+import igentuman.mod_template.util.caps.EnergyCapDefinition;
 import igentuman.mod_template.util.caps.FluidCapDefinition;
 import igentuman.mod_template.util.caps.ItemCapDefinition;
 import net.minecraft.world.inventory.MenuType;
@@ -23,7 +24,8 @@ public record ModEntry (
         DeferredHolder<RecipeSerializer<?>, RecipeSerializer<?>> recipeSerializer,
         MaterialEntry materialEntry,
         ItemCapDefinition itemCap,
-        FluidCapDefinition fluidCap
+        FluidCapDefinition fluidCap,
+        EnergyCapDefinition energyCap
 ) {
 
     public boolean hasBlockEntity() {

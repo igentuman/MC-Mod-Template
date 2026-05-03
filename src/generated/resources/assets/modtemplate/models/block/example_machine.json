@@ -1,6 +1,9 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/orientable_with_bottom",
   "textures": {
-    "all": "modtemplate:block/example_machine"
+    "bottom": "modtemplate:block/example_machine/side",
+    "front": "modtemplate:block/example_machine/front",
+    "side": "modtemplate:block/example_machine/side",
+    "top": "modtemplate:block/example_machine/side"
   }
 }

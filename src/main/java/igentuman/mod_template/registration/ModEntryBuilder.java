@@ -200,7 +200,7 @@ public class ModEntryBuilder {
             material.build();
         }
 
-        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer, material, itemCapDefinition, fluidCapDefinition);
+        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer, material, itemCapDefinition, fluidCapDefinition, energy);
         ENTRIES.put(name, entry);
         return entry;
 

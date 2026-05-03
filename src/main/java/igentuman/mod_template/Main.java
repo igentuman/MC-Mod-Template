@@ -95,6 +95,18 @@ public class Main {
                         }
                 );
             }
+            if (entry.hasBlockEntity() && entry.energyCap() != null) {
+                event.registerBlockEntity(
+                        Capabilities.EnergyStorage.BLOCK,
+                        entry.blockEntity().get(),
+                        (be, side) -> {
+                            if (be instanceof GlobalBlockEntity gbe) {
+                                return gbe.getEnergyHandler(side);
+                            }
+                            return null;
+                        }
+                );
+            }
         }
     }
 

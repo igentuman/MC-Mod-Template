@@ -1,10 +1,13 @@
 package igentuman.mod_template.datagen;
 
+import igentuman.mod_template.block.UniversalProcessorBlock;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
@@ -18,6 +21,7 @@ import igentuman.mod_template.setup.ModEntries;
 import java.util.function.Function;
 
 import static igentuman.mod_template.Main.MODID;
+import static igentuman.mod_template.Main.rl;
 
 public class ModBlockStateProvider extends BlockStateProvider {
     private final ExistingFileHelper existingFileHelper;
@@ -27,18 +31,54 @@ public class ModBlockStateProvider extends BlockStateProvider {
         this.existingFileHelper = existingFileHelper;
     }
 
+    private boolean modelExists(String path) {
+        return existingFileHelper.exists(
+                ResourceLocation.fromNamespaceAndPath(MODID, path),
+                net.minecraft.server.packs.PackType.CLIENT_RESOURCES,
+                ".json", "models"
+        );
+    }
+
+    private boolean blockStateExists(String path) {
+        return existingFileHelper.exists(
+                ResourceLocation.fromNamespaceAndPath(MODID, path),
+                net.minecraft.server.packs.PackType.CLIENT_RESOURCES,
+                ".json", "blockstates"
+        );
+    }
+
+    private boolean textureExists(String path) {
+        return existingFileHelper.exists(
+                ResourceLocation.fromNamespaceAndPath(MODID, path),
+                net.minecraft.server.packs.PackType.CLIENT_RESOURCES,
+                ".png", "textures"
+        );
+    }
+
     @Override
     public void registerStatesAndModels() {
         for (ModEntry entry : ModEntries.ENTRIES.values()) {
             if (entry.hasBlock()) {
-                blockWithItem(entry.block());
+                String path = BuiltInRegistries.BLOCK.getKey(entry.block().get()).getPath();
+                if (blockStateExists(path)) continue;
+                if (entry.block().get().defaultBlockState().hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+                    horizontalBlockWithItem(entry.block());
+                } else {
+                    blockWithItem(entry.block());
+                }
             }
             if (entry.materialEntry() instanceof MaterialEntry materialEntry) {
                 if (materialEntry.hasOre()) {
-                    blockWithItem(materialEntry.oreBlock(), "material");
+                    String path = BuiltInRegistries.BLOCK.getKey(materialEntry.oreBlock().get()).getPath();
+                    if (!blockStateExists(path)) {
+                        blockWithItem(materialEntry.oreBlock(), "material");
+                    }
                 }
                 if (materialEntry.hasBlock()) {
-                    blockWithItem(materialEntry.storageBlock(), "material");
+                    String path = BuiltInRegistries.BLOCK.getKey(materialEntry.storageBlock().get()).getPath();
+                    if (!blockStateExists(path)) {
+                        blockWithItem(materialEntry.storageBlock(), "material");
+                    }
                 }
             }
         }
@@ -46,6 +86,40 @@ public class ModBlockStateProvider extends BlockStateProvider {
 
     private void stateBlock(Block block, Function<BlockState, ModelFile> modelFunc) {
         getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder().modelFile(modelFunc.apply(state)).build());
+    }
+
+    private void horizontalBlockWithItem(DeferredBlock<Block> deferredBlock) {
+        Block block = deferredBlock.get();
+        String path = BuiltInRegistries.BLOCK.getKey(block).getPath();
+
+        boolean hasSide = textureExists("block/" + path + "/side");
+        boolean hasFront = textureExists("block/" + path + "/front");
+        boolean hasTop = textureExists("block/" + path + "/top");
+        boolean hasBottom = textureExists("block/" + path + "/bottom");
+        boolean hasSubfolderTextures = hasSide || hasFront || hasTop || hasBottom;
+
+        // fallback: single texture without subfolder (e.g. block/example_machine.png)
+        boolean hasSingleTexture = textureExists("block/" + path);
+
+        ModelFile model;
+        if (hasSubfolderTextures) {
+            // use available subfolder textures, falling back to side for missing ones
+            ResourceLocation side = rl("block/" + path + "/" + (hasSide ? "side" : "front"));
+            ResourceLocation front = rl("block/" + path + "/" + (hasFront ? "front" : "side"));
+            ResourceLocation top = hasTop ? rl("block/" + path + "/top") : side;
+            ResourceLocation bottom = hasBottom ? rl("block/" + path + "/bottom") : top;
+            model = models().orientableWithBottom(path, side, front, top, bottom);
+        } else if (hasSingleTexture) {
+            // single texture for all faces, use orientable with same texture everywhere
+            ResourceLocation texture = rl("block/" + path);
+            model = models().orientable(path, texture, texture, texture);
+        } else {
+            ResourceLocation side = rl("block/" + path + "/side");
+            model = models().orientable(path, side, side, side);
+        }
+
+        horizontalBlock(block, model);
+        itemModels().getBuilder("item/" + path).parent(model);
     }
 
     private void blockWithItem(DeferredBlock<Block> deferredBlock) {
