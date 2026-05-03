@@ -265,7 +265,7 @@ This single call registers:
 - Automatic placement in creative tabs
 - Full datagen support: block states, item models, language entries, block/item/fluid tags
 
-The `MaterialEntry` API supports customization via chaining — you can remove components you don't need:
+The `MaterialEntry` API supports customization via chaining - you can remove components you don't need:
 
 ```java
 public static final ModEntry COPPER_EXTRA = addMetalOreMaterial("copper_extra", 0xB87333)
@@ -290,23 +290,23 @@ processor("example_machine")
 ```
 
 The builder supports:
-- `.itemInput(item)` / `.itemInput(item, count)` / `.itemInput(tagKey, count)` — item inputs
-- `.fluidInput(fluid, amount)` — fluid inputs
-- `.itemOutput(item)` / `.itemOutput(item, count)` — item outputs
-- `.fluidOutput(fluid, amount)` — fluid outputs
-- `.processTime(ticks)` — processing duration (default 200)
-- `.energyPerTick(fe)` — energy cost per tick (default 20)
+- `.itemInput(item)` / `.itemInput(item, count)` / `.itemInput(tagKey, count)` - item inputs
+- `.fluidInput(fluid, amount)` - fluid inputs
+- `.itemOutput(item)` / `.itemOutput(item, count)` - item outputs
+- `.fluidOutput(fluid, amount)` - fluid outputs
+- `.processTime(ticks)` - processing duration (default 200)
+- `.energyPerTick(fe)` - energy cost per tick (default 20)
 
 Recipe JSON files are generated in `data/modtemplate/recipe/` with the processor name as subfolder.
 
 ### JEI Integration
 
-JEI recipe categories are registered **dynamically** for every `ModEntry` that has recipes. No manual JEI code needed — just define your processors and recipes, and JEI categories appear automatically:
+JEI recipe categories are registered **dynamically** for every `ModEntry` that has recipes. No manual JEI code needed - just define your processors and recipes, and JEI categories appear automatically:
 
-- **Category** — titled with the block's translation name, using the machine block as icon
-- **Catalyst** — the machine block item is registered as the recipe catalyst
-- **Recipes** — all recipes of the machine's `RecipeType` are collected and displayed
-- **Layout** — item and fluid input/output slots are arranged based on the processor's capability definitions
+- **Category** - titled with the block's translation name, using the machine block as icon
+- **Catalyst** - the machine block item is registered as the recipe catalyst
+- **Recipes** - all recipes of the machine's `RecipeType` are collected and displayed
+- **Layout** - item and fluid input/output slots are arranged based on the processor's capability definitions
 
 The JEI plugin lives in `compat/jei/ModJeiPlugin.java` and iterates over `ModEntries.ENTRIES` at registration time.
 
