@@ -5,11 +5,14 @@ A universal template for building Minecraft mods on **NeoForge 1.21.1**. The cor
 ## Features
 
 - **One-liner registration** - add a full-featured processing machine with a single builder chain
-- **Unified `ModEntry` record** - holds all deferred references (block, item, block entity, menu, recipe type, recipe serializer) in one object
+- **Material registration system** - define a complete material (ore, ingot, dust, plate, nugget, raw ore, storage block, molten fluid, bucket) with one call via `addMetalOreMaterial`
+- **Unified `ModEntry` record** - holds all deferred references (block, item, block entity, menu, recipe type, recipe serializer, material) in one object
 - **Universal processor system** - reusable block, block entity, container, screen, and recipe classes that work for any machine
 - **Auto creative tab placement** - machines go to Functional Blocks, plain blocks to Building Blocks, standalone items to Ingredients
 - **Auto screen registration** - all entries with menus get their GUI screens registered on the client automatically
-- **Datagen-ready** - includes providers for block states, item models, loot tables, recipes, tags, and language files
+- **Datagen-ready** - includes providers for block states, item models, loot tables, recipes, tags (block, item, fluid), and language files
+- **Recipe datagen builder** - `UniversalProcessorRecipeBuilder` with fluent API for item/fluid inputs/outputs, process time, and energy cost
+- **Dynamic JEI integration** - automatically registers JEI recipe categories, catalysts, and recipes for every processor entry
 - **World generation hooks** - preconfigured modules for configured features, placed features, biome modifiers, biomes, and dimensions
 
 ## Auto-Registered Components
@@ -27,6 +30,10 @@ When you use `ModEntryBuilder`, the following registries are populated automatic
 | **RecipeSerializer** | `RECIPE_SERIALIZERS` | `.withRecipes()` is called |
 | **Creative Tab Entry** | - | Automatic based on entry type (machine / block / item) |
 | **GUI Screen** | Client event | Automatic for every entry that has a menu |
+| **Material (ore, ingot, etc.)** | `BLOCKS` / `ITEMS` | `addMetalOreMaterial(...)` is called |
+| **Molten Fluid** | `FLUID_TYPES` / `FLUIDS` | Material has a `FluidDefinition` |
+| **Bucket Item** | `ITEMS` | Material has a fluid |
+| **JEI Category** | JEI plugin | Automatic for every entry with recipes |
 
 ## ModEntryBuilder API
 
@@ -47,7 +54,9 @@ When you use `ModEntryBuilder`, the following registries are populated automatic
 | `.withRecipes(type, serializer)` | Register custom recipe type and serializer |
 | `.fluidCap(in, out, default)` | Define fluid capability (input/output/default tanks) |
 | `.itemCap(in, out)` | Define item capability (input/output slots) |
+| `.material(color)` | Attach a `MaterialEntry` with the given color |
 | `.build()` | Finalize and register everything, returns a `ModEntry` |
+| `addMetalOreMaterial(name, color)` | Shortcut: register a full metal material (ore, block, ingot, dust, plate, nugget, raw ore, molten fluid, bucket) |
 
 ## Usage Examples
 
@@ -240,6 +249,67 @@ The corresponding recipe JSON would then include your custom field:
 }
 ```
 
+### Register a complete metal material (one-liner)
+
+```java
+public static final ModEntry SILVER = addMetalOreMaterial("silver", Color.LIGHT_GRAY.getRGB()).build();
+```
+
+This single call registers:
+- A **silver ore** block + `BlockItem`
+- A **silver storage block** + `BlockItem`
+- An **ingot**, **dust**, **plate**, **nugget**, and **raw ore** item
+- A **molten silver** fluid (source + flowing) with `FluidType`
+- A **liquid block** for the molten fluid placed in world
+- A **bucket** item for the molten fluid
+- Automatic placement in creative tabs
+- Full datagen support: block states, item models, language entries, block/item/fluid tags
+
+The `MaterialEntry` API supports customization via chaining — you can remove components you don't need:
+
+```java
+public static final ModEntry COPPER_EXTRA = addMetalOreMaterial("copper_extra", 0xB87333)
+        .noOre()      // skip ore block registration
+        .noRawOre()   // skip raw ore item
+        .noFluid()    // skip molten fluid
+        .build();
+```
+
+### Recipe datagen with `UniversalProcessorRecipeBuilder`
+
+Define processor recipes in datagen using a fluent builder:
+
+```java
+processor("example_machine")
+        .itemInput(Items.SAND)
+        .fluidInput(Fluids.WATER, 1000)
+        .fluidOutput(Fluids.LAVA, 1000)
+        .processTime(200)
+        .energyPerTick(20)
+        .save(recipeOutput, "sand_water_to_lava");
+```
+
+The builder supports:
+- `.itemInput(item)` / `.itemInput(item, count)` / `.itemInput(tagKey, count)` — item inputs
+- `.fluidInput(fluid, amount)` — fluid inputs
+- `.itemOutput(item)` / `.itemOutput(item, count)` — item outputs
+- `.fluidOutput(fluid, amount)` — fluid outputs
+- `.processTime(ticks)` — processing duration (default 200)
+- `.energyPerTick(fe)` — energy cost per tick (default 20)
+
+Recipe JSON files are generated in `data/modtemplate/recipe/` with the processor name as subfolder.
+
+### JEI Integration
+
+JEI recipe categories are registered **dynamically** for every `ModEntry` that has recipes. No manual JEI code needed — just define your processors and recipes, and JEI categories appear automatically:
+
+- **Category** — titled with the block's translation name, using the machine block as icon
+- **Catalyst** — the machine block item is registered as the recipe catalyst
+- **Recipes** — all recipes of the machine's `RecipeType` are collected and displayed
+- **Layout** — item and fluid input/output slots are arranged based on the processor's capability definitions
+
+The JEI plugin lives in `compat/jei/ModJeiPlugin.java` and iterates over `ModEntries.ENTRIES` at registration time.
+
 ### Access registered entries at runtime
 
 ```java
@@ -262,10 +332,14 @@ src/main/java/igentuman/mod_template/
   registration/
     ModEntryBuilder.java             - Fluent builder for mod entries
     ModEntry.java                    - Record holding all deferred registrations
+    MaterialEntry.java               - Material definition (ore, ingot, dust, plate, etc.)
+    FluidDefinition.java             - Fluid properties for materials
+    MaterialFluid.java               - Registered fluid references (source, flowing, block, bucket)
+    MaterialFluidType.java           - Custom FluidType with rendering properties
   setup/
     Registers.java                   - All DeferredRegister instances
     ModEntries.java                  - Where you define your content
-    Client.java                      - Client-side setup (screen registration)
+    Client.java                      - Client-side setup (screen + fluid rendering)
     Common.java                      - Common setup events
   block/
     UniversalProcessorBlock.java     - Reusable processor block
@@ -279,9 +353,24 @@ src/main/java/igentuman/mod_template/
     UniversalProcessorRecipe.java    - Universal recipe (items + fluids + energy)
     UniversalProcessorRecipeSerializer.java
     ProcessorRecipeInput.java
+  compat/
+    jei/
+      ModJeiPlugin.java              - Dynamic JEI plugin (auto-registers categories)
+      ProcessorRecipeCategory.java   - Universal JEI recipe category for processors
   config/
     Common.java                      - Mod configuration
-  datagen/                           - Data generators for assets and data
+  datagen/
+    ModBlockStateProvider.java       - Block state & model datagen
+    ModItemModelProvider.java        - Item model datagen
+    ModLanguageProvider.java         - Language file datagen
+    recipe/
+      ModRecipeProvider.java         - Recipe datagen entry point
+      ExampleMachineRecipes.java     - Example processor recipes
+      UniversalProcessorRecipeBuilder.java - Fluent recipe builder
+    tag/
+      ModBlockTagProvider.java       - Block tag datagen (mining, common tags)
+      ModItemTagProvider.java        - Item tag datagen (ingots, dusts, ores, etc.)
+      ModFluidTagProvider.java       - Fluid tag datagen
   util/                              - Capabilities and slot definitions
 ```
 
@@ -299,52 +388,25 @@ Requires **Java 21**.
 
 ## Planned Features
 
-### Ore Registration via Builder
+### Ore World Generation via Builder
 
-One-liner ore registration with automatic world-gen setup (configured features, placed features, biome modifiers), deepslate variant generation, loot tables, and mining tags:
+Extend material registration with automatic world-gen setup (configured features, placed features, biome modifiers), deepslate variant generation, and loot tables:
 
 ```java
-public static final ModEntry SILVER_ORE = addOre("silver_ore")
+public static final ModEntry SILVER = addMetalOreMaterial("silver", Color.LIGHT_GRAY.getRGB())
         .veinSize(8)
         .veinsPerChunk(4)
         .heightRange(-64, 32)
         .deepslateVariant()             // auto-registers deepslate_silver_ore block
-        .withRawItem()                  // auto-registers raw_silver item as drop
         .build();
 ```
 
-Auto-registered components:
-- Ore block + deepslate variant block (optional)
-- `BlockItem` for each block variant
-- Raw ore item drop (optional, or `dropSelf`)
+Planned auto-registered components (on top of existing material registration):
+- Deepslate ore variant block (optional)
 - `ConfiguredFeature` with `OreConfiguration` (stone + deepslate targets)
 - `PlacedFeature` with height and count placement modifiers
 - `BiomeModifier` for overworld ore generation
-- Mining tags (`mineable/pickaxe`, tool tier)
 - Loot table with ore-specific drops (raw item or silk touch)
-
-### Fluid Registration via Builder
-
-One-liner fluid registration with automatic source/flowing fluid types, fluid block, bucket item, and render setup:
-
-```java
-public static final ModEntry ACID = addFluid("acid")
-        .tint(0xFF00FF00)              // fluid color tint
-        .density(1200)                 // heavier than water
-        .viscosity(1500)               // slower flow
-        .temperature(300)
-        .bucket()                      // auto-registers acid_bucket item
-        .build();
-```
-
-Auto-registered components:
-- Source fluid + flowing fluid (`ForgeFlowingFluid.Source` / `.Flowing`)
-- `FluidType` with physical properties (density, viscosity, temperature)
-- Liquid block (`LiquidBlock`) placed in world
-- Bucket item (optional)
-- Client-side fluid rendering (tint, still/flowing textures)
-- Fluid tags (`forge:acid`)
-- Creative tab placement in Tools & Utilities
 
 ## License
 
