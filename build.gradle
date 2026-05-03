@@ -52,6 +52,9 @@ repositories {
             includeGroup("cc.tweaked")
         }
     }
+    maven {
+        url = "https://modmaven.dev/"
+    }
 }
 
 base {
@@ -102,7 +105,11 @@ dependencies {
     compileOnly("cc.tweaked:cc-tweaked-${minecraft_version}-forge-api:${cct_version}")
     runtimeOnly("cc.tweaked:cc-tweaked-${minecraft_version}-forge:${cct_version}")
     compileOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}")
-    runtimeOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}")
+    compileOnly("mekanism:Mekanism:${minecraft_version}-${mekanism_version}:api")
+    runtimeOnly("mekanism:Mekanism:${minecraft_version}-${mekanism_version}")// Mekanism
+    runtimeOnly("mekanism:Mekanism:${minecraft_version}-${mekanism_version}:additions")// Mekanism: Additions
+    runtimeOnly("mekanism:Mekanism:${minecraft_version}-${mekanism_version}:generators")// Mekanism: Generators
+    runtimeOnly("mekanism:Mekanism:${minecraft_version}-${mekanism_version}:tools")// Mekanism: Tools
 }
 
 tasks.withType(ProcessResources).configureEach {

@@ -24,7 +24,7 @@ public class UniversalProcessorContainer extends AbstractContainerMenu {
     public UniversalProcessorContainer(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf extraData) {
         this(containerId, playerInventory,
                 (UniversalProcessorBE) playerInventory.player.level().getBlockEntity(extraData.readBlockPos()),
-                new SimpleContainerData(2));
+                null);
     }
 
 
@@ -33,15 +33,22 @@ public class UniversalProcessorContainer extends AbstractContainerMenu {
                                        UniversalProcessorBE blockEntity, ContainerData data) {
         super(ModEntries.get(blockEntity.name).menu().get(), containerId);
         this.blockEntity = blockEntity;
-        this.data = data;
+        // On the client side (data == null), create a SimpleContainerData matching the BE's sync field count.
+        // On the server side, use the provided ContainerData (typically blockEntity.containerData).
+        this.data = data != null ? data : new SimpleContainerData(blockEntity.getSyncFieldCount());
         this.access = ContainerLevelAccess.create(blockEntity.getLevel(), blockEntity.getBlockPos());
 
-        addDataSlots(data);
+        addDataSlots(this.data);
 
-        ItemStackHandler inv = blockEntity.inventory;
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 3; col++) {
-                addSlot(new SlotItemHandler(inv, row * 3 + col, 62 + col * 18, 17 + row * 18));
+        if (blockEntity.hasInventory()) {
+            ItemStackHandler inv = blockEntity.inventory;
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++) {
+                    int index = row * 3 + col;
+                    if (index < blockEntity.slotCount) {
+                        addSlot(new SlotItemHandler(inv, index, 62 + col * 18, 17 + row * 18));
+                    }
+                }
             }
         }
 
@@ -58,12 +65,23 @@ public class UniversalProcessorContainer extends AbstractContainerMenu {
         }
     }
 
+    /**
+     * Gets a synced field value by its index.
+     * Indices match the order fields are discovered via reflection
+     * (subclass fields first, then parent class fields, in declaration order).
+     */
+    public int getSyncedValue(int index) {
+        return data.get(index);
+    }
+
     public int getProgress() {
-        return data.get(0);
+        return blockEntity.getSyncFieldIndex("progress") != -1
+                ? data.get(blockEntity.getSyncFieldIndex("progress")) : 0;
     }
 
     public int getMaxProgress() {
-        return data.get(1);
+        return blockEntity.getSyncFieldIndex("maxProgress") != -1
+                ? data.get(blockEntity.getSyncFieldIndex("maxProgress")) : 0;
     }
 
     @Override
@@ -76,7 +94,7 @@ public class UniversalProcessorContainer extends AbstractContainerMenu {
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
 
-        int beSlots = UniversalProcessorBE.SLOT_COUNT;
+        int beSlots = blockEntity.slotCount;
 
         if (slotIndex < beSlots) {
             // Move from block entity to player inventory

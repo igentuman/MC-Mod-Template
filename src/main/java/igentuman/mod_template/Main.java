@@ -1,5 +1,6 @@
 package igentuman.mod_template;
 
+import igentuman.mod_template.block_entity.GlobalBlockEntity;
 import igentuman.mod_template.config.Common;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
@@ -31,6 +32,8 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
@@ -62,7 +65,37 @@ public class Main {
         NeoForge.EVENT_BUS.register(this);
 
         modEventBus.addListener(this::addCreative);
+        modEventBus.addListener(this::registerCapabilities);
         modContainer.registerConfig(ModConfig.Type.COMMON, Common.SPEC);
+    }
+
+    private void registerCapabilities(RegisterCapabilitiesEvent event) {
+        for (ModEntry entry : ModEntries.ENTRIES.values()) {
+            if (entry.hasBlockEntity() && entry.itemCap() != null) {
+                event.registerBlockEntity(
+                        Capabilities.ItemHandler.BLOCK,
+                        entry.blockEntity().get(),
+                        (be, side) -> {
+                            if (be instanceof GlobalBlockEntity gbe) {
+                                return gbe.getItemHandler(side);
+                            }
+                            return null;
+                        }
+                );
+            }
+            if (entry.hasBlockEntity() && entry.fluidCap() != null) {
+                event.registerBlockEntity(
+                        Capabilities.FluidHandler.BLOCK,
+                        entry.blockEntity().get(),
+                        (be, side) -> {
+                            if (be instanceof GlobalBlockEntity gbe) {
+                                return gbe.getFluidHandler(side);
+                            }
+                            return null;
+                        }
+                );
+            }
+        }
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
