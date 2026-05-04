@@ -18,9 +18,12 @@ import net.neoforged.neoforge.network.IContainerFactory;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.MapColor;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -72,6 +75,96 @@ public class ModEntryBuilder {
 
     public ModEntryBuilder material(int color) {
         material = MaterialEntry.of(color, name);
+        return this;
+    }
+
+    public ModEntryBuilder ingot() {
+        if(material == null) {
+            material(0);
+        }
+        material.setIngotSupplier(() -> new Item(new Item.Properties()));
+        return this;
+    }
+
+    public ModEntryBuilder gem() {
+        if(material == null) {
+            material(0);
+        }
+        material.setGemSupplier(() -> new Item(new Item.Properties()));
+        return this;
+    }
+
+    public ModEntryBuilder dust() {
+        if(material == null) {
+            material(0);
+        }
+        material.setDustSupplier(() -> new Item(new Item.Properties()));
+        return this;
+    }
+
+    public ModEntryBuilder nugget() {
+        if(material == null) {
+            material(0);
+        }
+        material.setNuggetSupplier(() -> new Item(new Item.Properties()));
+        return this;
+    }
+
+    public ModEntryBuilder rawOre() {
+        if(material == null) {
+            material(0);
+        }
+        material.setRawOreSupplier(() -> new Item(new Item.Properties()));
+        return this;
+    }
+
+    public ModEntryBuilder plate() {
+        if(material == null) {
+            material(0);
+        }
+        material.setPlateSupplier(() -> new Item(new Item.Properties()));
+        return this;
+    }
+
+    public ModEntryBuilder ore() {
+        if(material == null) {
+            material(0);
+        }
+        BlockBehaviour.Properties oreProps = BlockBehaviour.Properties.of()
+                .mapColor(MapColor.STONE)
+                .strength(3.0f, 3.0f)
+                .requiresCorrectToolForDrops()
+                .sound(SoundType.STONE);
+        material.setOre(() -> new Block(oreProps), () -> new BlockItem(new Block(oreProps), new Item.Properties()));
+        return this;
+    }
+
+    public ModEntryBuilder storageBlock() {
+        if(material == null) {
+            material(0);
+        }
+        BlockBehaviour.Properties blockProps = BlockBehaviour.Properties.of()
+                .mapColor(MapColor.METAL)
+                .strength(5.0f, 6.0f)
+                .requiresCorrectToolForDrops()
+                .sound(SoundType.METAL);
+        material.setBlock(() -> new Block(blockProps), () -> new BlockItem(new Block(blockProps), new Item.Properties()));
+        return this;
+    }
+
+    public ModEntryBuilder fluid() {
+        if(material == null) {
+            material(0);
+        }
+        material.setFluidDefinition(FluidDefinition.metal());
+        return this;
+    }
+
+    public ModEntryBuilder fluid(FluidDefinition fluidDefinition) {
+        if(material == null) {
+            material(0);
+        }
+        material.setFluidDefinition(fluidDefinition);
         return this;
     }
 
