@@ -84,6 +84,10 @@ public class UniversalProcessorContainer extends AbstractContainerMenu {
                 ? data.get(blockEntity.getSyncFieldIndex("maxProgress")) : 0;
     }
 
+    public UniversalProcessorBE getBlockEntity() {
+        return blockEntity;
+    }
+
     @Override
     public ItemStack quickMoveStack(Player player, int slotIndex) {
         Slot slot = slots.get(slotIndex);

@@ -1,6 +1,7 @@
 package igentuman.mod_template.block;
 
 import com.mojang.serialization.MapCodec;
+import igentuman.mod_template.block_entity.GlobalBlockEntity;
 import igentuman.mod_template.block_entity.UniversalProcessorBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,6 +16,8 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -89,12 +92,30 @@ public class UniversalProcessorBlock extends BaseEntityBlock {
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        if (level.isClientSide) {
+            return (lvl, pos, st, be) -> {
+                if (be instanceof GlobalBlockEntity gBE) {
+                    gBE.clientTick();
+                }
+            };
+        } else {
+            return (lvl, pos, st, be) -> {
+                if (be instanceof GlobalBlockEntity gBE) {
+                    gBE.serverTick();
+                }
+            };
+        }
+    }
+
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock())) {
             BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof UniversalProcessorBE exampleBE) {
-                exampleBE.drops();
+            if (be instanceof GlobalBlockEntity gBE) {
+                gBE.drops();
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);

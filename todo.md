@@ -13,11 +13,11 @@
 - Add networking support for `UniversalProcessor`
 
 ## UniversalProcessor Block Improvements
-- Make `UniversalProcessor` a horizontal directional block
-- Update blockstate generator accordingly
+- ~~Make `UniversalProcessor` a horizontal directional block~~
+- ~~Update blockstate generator accordingly~~
 
 ## Capabilities Integration
-- Integrate capabilities to `UniversalProcessor`
+- ~~Integrate capabilities to `UniversalProcessor`~~
 
 ## Example Recipes
 - ~~Add actual example recipes for `UniversalProcessor` for testing~~

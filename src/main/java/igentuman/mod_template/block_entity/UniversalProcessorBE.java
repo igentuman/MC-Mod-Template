@@ -19,7 +19,7 @@ public class UniversalProcessorBE extends GlobalBlockEntity implements MenuProvi
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.modtemplate.example");
+        return Component.translatable("block.modtemplate." + name);
     }
 
     @Nullable

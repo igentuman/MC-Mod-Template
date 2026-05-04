@@ -169,4 +169,8 @@ public class Main {
     public static ResourceLocation rl(String path) {
         return ResourceLocation.fromNamespaceAndPath(MODID, path);
     }
+
+    public static ResourceLocation rlFromString(String name) {
+        return ResourceLocation.tryParse(name);
+    }
 }

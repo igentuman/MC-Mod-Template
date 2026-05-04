@@ -1,12 +1,15 @@
 package igentuman.mod_template.screen;
 
 import igentuman.mod_template.Main;
+import igentuman.mod_template.block_entity.UniversalProcessorBE;
 import igentuman.mod_template.container.UniversalProcessorContainer;
+import igentuman.mod_template.util.GuiFluidRenderer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import static igentuman.mod_template.Main.rl;
 
@@ -40,11 +43,38 @@ public class UniversalProcessorScreen extends AbstractContainerScreen<UniversalP
             int arrowWidth = (int) (24.0f * progress / maxProgress);
             guiGraphics.blit(TEXTURE, x + 80, y + 35, 176, 0, arrowWidth, 17);
         }
+
+        // Render fluid tanks (18x18 each)
+        UniversalProcessorBE be = menu.getBlockEntity();
+        if (be.hasFluidTanks()) {
+            FluidTank[] tanks = be.fluidTanks;
+            for (int i = 0; i < tanks.length; i++) {
+                int tankX = x + 8 + i * 22;
+                int tankY = y + 17;
+                GuiFluidRenderer.renderFluidTank(guiGraphics, tankX, tankY, 18, 18,
+                        tanks[i].getFluid(), tanks[i].getCapacity());
+            }
+        }
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
+
+        // Render fluid tank tooltips
+        int x = (this.width - this.imageWidth) / 2;
+        int y = (this.height - this.imageHeight) / 2;
+        UniversalProcessorBE be = menu.getBlockEntity();
+        if (be.hasFluidTanks()) {
+            FluidTank[] tanks = be.fluidTanks;
+            for (int i = 0; i < tanks.length; i++) {
+                int tankX = x + 8 + i * 22;
+                int tankY = y + 17;
+                GuiFluidRenderer.renderFluidTooltip(guiGraphics, mouseX, mouseY,
+                        tankX, tankY, 18, 18,
+                        tanks[i].getFluid(), tanks[i].getCapacity());
+            }
+        }
     }
 }

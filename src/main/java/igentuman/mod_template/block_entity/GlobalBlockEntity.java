@@ -1,5 +1,8 @@
 package igentuman.mod_template.block_entity;
 
+import igentuman.mod_template.handler.energy.CustomEnergyStorage;
+import igentuman.mod_template.recipe.ProcessorRecipeInput;
+import igentuman.mod_template.recipe.RecipeInfo;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
 import igentuman.mod_template.util.NBTField;
@@ -12,12 +15,16 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.energy.EnergyStorage;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
@@ -32,6 +39,8 @@ import java.util.List;
 public class GlobalBlockEntity extends BlockEntity {
 
     public String name;
+    public boolean needsUpdate = false;
+    public final RecipeInfo recipeInfo = new RecipeInfo(this);
 
     /** Item inventory capability - null if no item slots are defined in the ModEntry. */
     @Nullable
@@ -49,7 +58,7 @@ public class GlobalBlockEntity extends BlockEntity {
 
     /** Energy storage capability - null if no energy cap is defined in the ModEntry. */
     @Nullable
-    public final EnergyStorage energyStorage;
+    public final CustomEnergyStorage energyStorage;
 
     private final List<Field> booleanFields;
     private final List<Field> intFields;
@@ -101,13 +110,37 @@ public class GlobalBlockEntity extends BlockEntity {
 
     /**
      * Returns the IFluidHandler for the given side.
-     * Currently exposes all tanks from all sides via a CombinedFluidHandler.
+     * External fill only goes to input + global tanks.
+     * External drain only comes from output + global tanks.
      */
     @Nullable
     public IFluidHandler getFluidHandler(@Nullable Direction side) {
         if (fluidTanks == null || fluidTanks.length == 0) return null;
-        if (fluidTanks.length == 1) return fluidTanks[0];
-        return new igentuman.mod_template.util.caps.CombinedFluidHandler(fluidTanks);
+
+        ModEntry entry = (name != null) ? ModEntries.get(name) : null;
+        FluidCapDefinition fluidCapDef = (entry != null) ? entry.fluidCap() : null;
+
+        if (fluidCapDef == null) {
+            if (fluidTanks.length == 1) return fluidTanks[0];
+            return new igentuman.mod_template.util.caps.CombinedFluidHandler(fluidTanks);
+        }
+
+        int inputCount = fluidCapDef.inputTanks.size();
+        int outputCount = fluidCapDef.outputTanks.size();
+        int globalCount = fluidCapDef.globalTanks.size();
+
+        // Tank layout: [input tanks... | output tanks... | global tanks...]
+        // Fillable = input + global tanks (external sources can push fluid in)
+        IFluidHandler[] fillable = new IFluidHandler[inputCount + globalCount];
+        for (int i = 0; i < inputCount; i++) fillable[i] = fluidTanks[i];
+        for (int i = 0; i < globalCount; i++) fillable[inputCount + i] = fluidTanks[inputCount + outputCount + i];
+
+        // Drainable = output + global tanks (external consumers can pull fluid out)
+        IFluidHandler[] drainable = new IFluidHandler[outputCount + globalCount];
+        for (int i = 0; i < outputCount; i++) drainable[i] = fluidTanks[inputCount + i];
+        for (int i = 0; i < globalCount; i++) drainable[outputCount + i] = fluidTanks[inputCount + outputCount + i];
+
+        return new igentuman.mod_template.util.caps.CombinedFluidHandler(fluidTanks, fillable, drainable);
     }
 
     /**
@@ -200,7 +233,7 @@ public class GlobalBlockEntity extends BlockEntity {
             final int cap = energyCapDef.getCapacity();
             final int maxIn = energyCapDef.getInputRate();
             final int maxOut = energyCapDef.getOutputRate();
-            this.energyStorage = new EnergyStorage(cap, maxIn, maxOut) {
+            this.energyStorage = new CustomEnergyStorage(cap, maxIn, maxOut) {
                 @Override
                 public int receiveEnergy(int toReceive, boolean simulate) {
                     int result = super.receiveEnergy(toReceive, simulate);
@@ -458,6 +491,10 @@ public class GlobalBlockEntity extends BlockEntity {
         } catch (IllegalAccessException ignore) { }
     }
 
+    public boolean supportRecipes() {
+        return ModEntries.get(name).hasRecipes();
+    }
+
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
@@ -474,6 +511,9 @@ public class GlobalBlockEntity extends BlockEntity {
         }
         if (energyStorage != null) {
             tag.put("Energy", energyStorage.serializeNBT(registries));
+        }
+        if (supportRecipes()) {
+            tag.put("RecipeInfo", recipeInfo.save());
         }
     }
 
@@ -493,6 +533,41 @@ public class GlobalBlockEntity extends BlockEntity {
         if (energyStorage != null && tag.contains("Energy")) {
             energyStorage.deserializeNBT(registries, tag.get("Energy"));
         }
+        if (supportRecipes() && tag.contains("RecipeInfo")) {
+            recipeInfo.load(tag.getCompound("RecipeInfo"));
+        }
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        saveAdditional(tag, registries);
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    /**
+     * Called every tick on the server side.
+     * Override in subclasses to add server-side logic (processing, energy consumption, etc.).
+     */
+    public void serverTick() {
+        recipeInfo.tick();
+        if(recipeInfo.changed) {
+            setChanged();
+            getLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
+    }
+
+    /**
+     * Called every tick on the client side.
+     * Override in subclasses to add client-side logic (animations, particles, etc.).
+     */
+    public void clientTick() {
+        // Default: no-op. Subclasses override to add behavior.
     }
 
     /** Drops all items from the inventory into the world. Call on block break. */
@@ -505,6 +580,29 @@ public class GlobalBlockEntity extends BlockEntity {
                         worldPosition.getY(), worldPosition.getZ(), stack);
             }
         }
+    }
+
+    public ProcessorRecipeInput inputs() {
+        List<ItemStack> items = new ArrayList<>();
+        List<FluidStack> fluids = new ArrayList<>();
+
+        if (inventory != null && name != null) {
+            ModEntry entry = ModEntries.get(name);
+            int inputSlots = (entry != null && entry.itemCap() != null) ? entry.itemCap().inputSlots : 0;
+            for (int i = 0; i < inputSlots; i++) {
+                items.add(inventory.getStackInSlot(i));
+            }
+        }
+
+        if (fluidTanks != null && name != null) {
+            ModEntry entry = ModEntries.get(name);
+            int inputTanks = (entry != null && entry.fluidCap() != null) ? entry.fluidCap().inputTanks.size() : 0;
+            for (int i = 0; i < inputTanks; i++) {
+                fluids.add(fluidTanks[i].getFluid());
+            }
+        }
+
+        return new ProcessorRecipeInput(items, fluids);
     }
 }
 
