@@ -1,5 +1,6 @@
 package igentuman.mod_template.registration;
 
+import igentuman.mod_template.util.SlotsLayout;
 import igentuman.mod_template.util.caps.EnergyCapDefinition;
 import igentuman.mod_template.util.caps.FluidCapDefinition;
 import igentuman.mod_template.util.caps.ItemCapDefinition;
@@ -25,7 +26,8 @@ public record ModEntry (
         MaterialEntry materialEntry,
         ItemCapDefinition itemCap,
         FluidCapDefinition fluidCap,
-        EnergyCapDefinition energyCap
+        EnergyCapDefinition energyCap,
+        SlotsLayout slotsLayout
 ) {
 
     public boolean hasBlockEntity() {

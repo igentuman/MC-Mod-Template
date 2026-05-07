@@ -1,5 +1,6 @@
 package igentuman.mod_template.registration;
 
+import igentuman.mod_template.util.SlotsLayout;
 import igentuman.mod_template.util.caps.EnergyCapDefinition;
 import igentuman.mod_template.util.caps.FluidCapDefinition;
 import igentuman.mod_template.util.caps.ItemCapDefinition;
@@ -49,6 +50,7 @@ public class ModEntryBuilder {
     private Supplier<RecipeType<?>> recipeTypeSupplier;
     private Supplier<RecipeSerializer<?>> recipeSerializerSupplier;
     public MaterialEntry material;
+    private SlotsLayout slotsLayout;
 
     private ModEntryBuilder(String name) {
         this.name = name;
@@ -168,12 +170,18 @@ public class ModEntryBuilder {
         return this;
     }
 
+    public ModEntryBuilder withLayout(SlotsLayout layout) {
+        this.slotsLayout = layout;
+        return this;
+    }
+
     public static ModEntryBuilder addProcessor(String name) {
         return add(name)
                 .block(UniversalProcessorBlock::new)
                 .blockEntity(UniversalProcessorBE::new)
                 .menu(UniversalProcessorContainer::new)
                 .withEnergyInput(100000)
+                .withLayout(SlotsLayout.ONE_TO_ONE)
                 .withRecipes();
     }
 
@@ -293,7 +301,7 @@ public class ModEntryBuilder {
             material.build();
         }
 
-        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer, material, itemCapDefinition, fluidCapDefinition, energy);
+        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer, material, itemCapDefinition, fluidCapDefinition, energy, slotsLayout);
         ENTRIES.put(name, entry);
         return entry;
 

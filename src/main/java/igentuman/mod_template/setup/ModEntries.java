@@ -2,6 +2,7 @@ package igentuman.mod_template.setup;
 
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.registration.ModEntryBuilder;
+import igentuman.mod_template.util.SlotsLayout;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 
@@ -17,6 +18,7 @@ public class ModEntries {
     public static final ModEntry EXAMPLE_ITEM = addItem("example_item").build();
 
     public static final ModEntry EXAMPLE_MACHINE = addProcessor("example_machine")
+            .withLayout(SlotsLayout.TWO_TO_ONE)
             .fluidCap(1,1, 0)
             .itemCap(1,0)
             .build();

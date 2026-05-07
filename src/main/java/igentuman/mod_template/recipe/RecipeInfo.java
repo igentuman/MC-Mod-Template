@@ -84,6 +84,7 @@ public class RecipeInfo {
         }
 
         ticks+=multiplier;
+        be.progress = getProgress();
         changed = true;
 
         if (isDone()) {
@@ -118,12 +119,13 @@ public class RecipeInfo {
         int outputTankCount = (fluidCap != null) ? fluidCap.outputTanks.size() : 0;
 
         // Check if all item outputs can fit
-        if (be.inventory != null) {
+        if (be.contentHandler.hasItemCapability()) {
+            var itemHandler = be.contentHandler.getItemHandler();
             for (int i = 0; i < itemOutputs.size(); i++) {
                 if (i >= outputSlotCount) return false;
                 ItemStack output = itemOutputs.get(i);
                 int slot = outputSlotStart + i;
-                ItemStack existing = be.inventory.getStackInSlot(slot);
+                ItemStack existing = itemHandler.getStackInSlot(slot);
                 if (!existing.isEmpty()) {
                     if (!ItemStack.isSameItemSameComponents(existing, output)) return false;
                     if (existing.getCount() + output.getCount() > existing.getMaxStackSize()) return false;
@@ -134,12 +136,13 @@ public class RecipeInfo {
         }
 
         // Check if all fluid outputs can fit
-        if (be.fluidTanks != null) {
+        if (be.contentHandler.hasFluidCapability()) {
+            var fluidHandler = be.contentHandler.getFluidHandler();
             for (int i = 0; i < fluidOutputs.size(); i++) {
                 if (i >= outputTankCount) return false;
                 int tankIdx = outputTankStart + i;
                 FluidStack output = fluidOutputs.get(i);
-                int filled = be.fluidTanks[tankIdx].fill(output, IFluidHandler.FluidAction.SIMULATE);
+                int filled = fluidHandler.fillTank(tankIdx, output, IFluidHandler.FluidAction.SIMULATE);
                 if (filled < output.getAmount()) return false;
             }
         } else if (!fluidOutputs.isEmpty()) {
@@ -147,12 +150,13 @@ public class RecipeInfo {
         }
 
         // All checks passed - place outputs
-        if (be.inventory != null) {
+        if (be.contentHandler.hasItemCapability()) {
+            var itemHandler = be.contentHandler.getItemHandler();
             for (int i = 0; i < itemOutputs.size(); i++) {
                 int slot = outputSlotStart + i;
-                ItemStack existing = be.inventory.getStackInSlot(slot);
+                ItemStack existing = itemHandler.getStackInSlot(slot);
                 if (existing.isEmpty()) {
-                    be.inventory.setStackInSlot(slot, itemOutputs.get(i).copy());
+                    itemHandler.setStackInSlot(slot, itemOutputs.get(i).copy());
                 } else {
                     existing.grow(itemOutputs.get(i).getCount());
                 }
@@ -160,10 +164,11 @@ public class RecipeInfo {
         }
 
         // Place fluid outputs
-        if (be.fluidTanks != null) {
+        if (be.contentHandler.hasFluidCapability()) {
+            var fluidHandler = be.contentHandler.getFluidHandler();
             for (int i = 0; i < fluidOutputs.size(); i++) {
                 int tankIdx = outputTankStart + i;
-                be.fluidTanks[tankIdx].fill(fluidOutputs.get(i).copy(), IFluidHandler.FluidAction.EXECUTE);
+                fluidHandler.fillTank(tankIdx, fluidOutputs.get(i).copy(), IFluidHandler.FluidAction.EXECUTE);
             }
         }
 
@@ -176,19 +181,21 @@ public class RecipeInfo {
 
         // Consume item inputs
         List<SizedIngredient> itemInputs = upr.getItemInputs();
-        if (be.inventory != null) {
+        if (be.contentHandler.hasItemCapability()) {
+            var itemHandler = be.contentHandler.getItemHandler();
             for (int i = 0; i < itemInputs.size(); i++) {
                 int count = itemInputs.get(i).count();
-                be.inventory.extractItem(i, count, false);
+                itemHandler.extractItem(i, count, false);
             }
         }
 
         // Consume fluid inputs
         List<SizedFluidIngredient> fluidInputs = upr.getFluidInputs();
-        if (be.fluidTanks != null) {
+        if (be.contentHandler.hasFluidCapability()) {
+            var fluidHandler = be.contentHandler.getFluidHandler();
             for (int i = 0; i < fluidInputs.size(); i++) {
                 int amount = fluidInputs.get(i).amount();
-                be.fluidTanks[i].drain(amount, IFluidHandler.FluidAction.EXECUTE);
+                fluidHandler.drainTank(i, amount, IFluidHandler.FluidAction.EXECUTE);
             }
         }
         changed = true;
@@ -246,6 +253,7 @@ public class RecipeInfo {
         ticks = 0;
         ticksNeeded = 0;
         energyPerTick = 0;
+        be.progress = 0;
     }
 
     public Recipe<?> recipe() {

@@ -1,8 +1,10 @@
 package igentuman.mod_template.container;
 
 import igentuman.mod_template.block_entity.UniversalProcessorBE;
+import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
-import igentuman.mod_template.setup.Registers;
+import igentuman.mod_template.util.SlotDef;
+import igentuman.mod_template.util.SlotsLayout;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -12,7 +14,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
 public class UniversalProcessorContainer extends AbstractContainerMenu {
@@ -20,6 +22,7 @@ public class UniversalProcessorContainer extends AbstractContainerMenu {
     private final UniversalProcessorBE blockEntity;
     private final ContainerData data;
     private final ContainerLevelAccess access;
+    private final SlotsLayout slotsLayout;
 
     public UniversalProcessorContainer(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf extraData) {
         this(containerId, playerInventory,
@@ -27,21 +30,38 @@ public class UniversalProcessorContainer extends AbstractContainerMenu {
                 null);
     }
 
-
-    // Server-side constructor
     public UniversalProcessorContainer(int containerId, Inventory playerInventory,
                                        UniversalProcessorBE blockEntity, ContainerData data) {
         super(ModEntries.get(blockEntity.name).menu().get(), containerId);
         this.blockEntity = blockEntity;
-        // On the client side (data == null), create a SimpleContainerData matching the BE's sync field count.
-        // On the server side, use the provided ContainerData (typically blockEntity.containerData).
         this.data = data != null ? data : new SimpleContainerData(blockEntity.getSyncFieldCount());
         this.access = ContainerLevelAccess.create(blockEntity.getLevel(), blockEntity.getBlockPos());
 
         addDataSlots(this.data);
 
-        if (blockEntity.hasInventory()) {
-            ItemStackHandler inv = blockEntity.inventory;
+        ModEntry entry = ModEntries.get(blockEntity.name);
+        this.slotsLayout = entry.slotsLayout();
+
+        if (blockEntity.hasInventory() && slotsLayout != null) {
+            IItemHandler inv = blockEntity.getItemHandler(null);
+
+            int inputItemCount  = entry.itemCap()  != null ? entry.itemCap().inputSlots          : 0;
+            int inputFluidCount = entry.fluidCap() != null ? entry.fluidCap().inputTanks.size()   : 0;
+            int outputItemCount = entry.itemCap()  != null ? entry.itemCap().outputSlots          : 0;
+
+            int inputItemOffset  = 0;
+            int outputItemOffset = inputItemCount + inputFluidCount;
+
+            for (int i = 0; i < inputItemCount; i++) {
+                SlotDef def = slotsLayout.slots.get(inputItemOffset + i);
+                addSlot(new SlotItemHandler(inv, i, def.x, def.y));
+            }
+            for (int i = 0; i < outputItemCount; i++) {
+                SlotDef def = slotsLayout.slots.get(outputItemOffset + i);
+                addSlot(new SlotItemHandler(inv, inputItemCount + i, def.x, def.y));
+            }
+        } else if (blockEntity.hasInventory()) {
+            IItemHandler inv = blockEntity.getItemHandler(null);
             for (int row = 0; row < 3; row++) {
                 for (int col = 0; col < 3; col++) {
                     int index = row * 3 + col;
@@ -52,24 +72,16 @@ public class UniversalProcessorContainer extends AbstractContainerMenu {
             }
         }
 
-        // Add player inventory (3 rows)
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 addSlot(new Slot(playerInventory, col + row * 9 + 9, 10 + col * 18, 96 + row * 18));
             }
         }
-
-        // Add player hotbar
         for (int col = 0; col < 9; col++) {
             addSlot(new Slot(playerInventory, col, 10 + col * 18, 154));
         }
     }
 
-    /**
-     * Gets a synced field value by its index.
-     * Indices match the order fields are discovered via reflection
-     * (subclass fields first, then parent class fields, in declaration order).
-     */
     public int getSyncedValue(int index) {
         return data.get(index);
     }
@@ -88,6 +100,10 @@ public class UniversalProcessorContainer extends AbstractContainerMenu {
         return blockEntity;
     }
 
+    public SlotsLayout getLayout() {
+        return slotsLayout;
+    }
+
     @Override
     public ItemStack quickMoveStack(Player player, int slotIndex) {
         Slot slot = slots.get(slotIndex);
@@ -101,12 +117,10 @@ public class UniversalProcessorContainer extends AbstractContainerMenu {
         int beSlots = blockEntity.slotCount;
 
         if (slotIndex < beSlots) {
-            // Move from block entity to player inventory
             if (!moveItemStackTo(stack, beSlots, slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
         } else {
-            // Move from player inventory to block entity
             if (!moveItemStackTo(stack, 0, beSlots, false)) {
                 return ItemStack.EMPTY;
             }

@@ -1,6 +1,9 @@
 package igentuman.mod_template.block_entity;
 
+import igentuman.mod_template.handler.SidedContentHandler;
 import igentuman.mod_template.handler.energy.CustomEnergyStorage;
+import igentuman.mod_template.handler.sided.FluidCapabilityHandler;
+import igentuman.mod_template.handler.sided.ItemCapabilityHandler;
 import igentuman.mod_template.recipe.ProcessorRecipeInput;
 import igentuman.mod_template.recipe.RecipeInfo;
 import igentuman.mod_template.registration.ModEntry;
@@ -23,13 +26,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.energy.EnergyStorage;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
@@ -39,19 +39,13 @@ import java.util.List;
 public class GlobalBlockEntity extends BlockEntity {
 
     public String name;
-    public boolean needsUpdate = false;
     public final RecipeInfo recipeInfo = new RecipeInfo(this);
 
-    /** Item inventory capability - null if no item slots are defined in the ModEntry. */
-    @Nullable
-    public final ItemStackHandler inventory;
+    /** Sided capability orchestrator. */
+    public final SidedContentHandler contentHandler;
 
     /** Total number of item slots (0 if no item cap). */
     public final int slotCount;
-
-    /** Fluid tanks - null if no fluid tanks are defined in the ModEntry. */
-    @Nullable
-    public final FluidTank[] fluidTanks;
 
     /** Total number of fluid tanks (0 if no fluid cap). */
     public final int tankCount;
@@ -88,11 +82,11 @@ public class GlobalBlockEntity extends BlockEntity {
     public int maxProgress = 100;
 
     public boolean hasInventory() {
-        return inventory != null;
+        return contentHandler.hasItemCapability();
     }
 
     public boolean hasFluidTanks() {
-        return fluidTanks != null && fluidTanks.length > 0;
+        return contentHandler.hasFluidCapability();
     }
 
     public boolean hasEnergyStorage() {
@@ -100,52 +94,26 @@ public class GlobalBlockEntity extends BlockEntity {
     }
 
     /**
-     * Returns the IItemHandler for the given side.
-     * Currently exposes the full inventory from all sides.
+     * Returns the side-aware IItemHandler for the given side.
+     * Applies slot mode filtering per side configuration.
      */
     @Nullable
     public IItemHandler getItemHandler(@Nullable Direction side) {
-        return inventory;
+        return contentHandler.getItemCapability(side);
     }
 
     /**
-     * Returns the IFluidHandler for the given side.
-     * External fill only goes to input + global tanks.
-     * External drain only comes from output + global tanks.
+     * Returns the side-aware IFluidHandler for the given side.
+     * Applies tank mode filtering per side configuration.
      */
     @Nullable
     public IFluidHandler getFluidHandler(@Nullable Direction side) {
-        if (fluidTanks == null || fluidTanks.length == 0) return null;
-
-        ModEntry entry = (name != null) ? ModEntries.get(name) : null;
-        FluidCapDefinition fluidCapDef = (entry != null) ? entry.fluidCap() : null;
-
-        if (fluidCapDef == null) {
-            if (fluidTanks.length == 1) return fluidTanks[0];
-            return new igentuman.mod_template.util.caps.CombinedFluidHandler(fluidTanks);
-        }
-
-        int inputCount = fluidCapDef.inputTanks.size();
-        int outputCount = fluidCapDef.outputTanks.size();
-        int globalCount = fluidCapDef.globalTanks.size();
-
-        // Tank layout: [input tanks... | output tanks... | global tanks...]
-        // Fillable = input + global tanks (external sources can push fluid in)
-        IFluidHandler[] fillable = new IFluidHandler[inputCount + globalCount];
-        for (int i = 0; i < inputCount; i++) fillable[i] = fluidTanks[i];
-        for (int i = 0; i < globalCount; i++) fillable[inputCount + i] = fluidTanks[inputCount + outputCount + i];
-
-        // Drainable = output + global tanks (external consumers can pull fluid out)
-        IFluidHandler[] drainable = new IFluidHandler[outputCount + globalCount];
-        for (int i = 0; i < outputCount; i++) drainable[i] = fluidTanks[inputCount + i];
-        for (int i = 0; i < globalCount; i++) drainable[outputCount + i] = fluidTanks[inputCount + outputCount + i];
-
-        return new igentuman.mod_template.util.caps.CombinedFluidHandler(fluidTanks, fillable, drainable);
+        return contentHandler.getFluidCapability(side);
     }
 
     /**
      * Returns the IEnergyStorage for the given side.
-     * Currently exposes the energy storage from all sides.
+     * Energy is accessible from all sides.
      */
     @Nullable
     public IEnergyStorage getEnergyHandler(@Nullable Direction side) {
@@ -156,27 +124,26 @@ public class GlobalBlockEntity extends BlockEntity {
         super(type, pos, blockState);
         this.name = name;
 
+        this.contentHandler = new SidedContentHandler();
+
         // Initialize item inventory from ModEntry's itemCap definition
-        int slots = 0;
-        ItemStackHandler handler = null;
         ItemCapDefinition capDef = null;
         if (name != null) {
             ModEntry entry = ModEntries.get(name);
             if (entry != null && entry.itemCap() != null) {
                 capDef = entry.itemCap();
-                slots = capDef.inputSlots + capDef.outputSlots + capDef.globalSlots + capDef.catalystSlots + capDef.hiddenSlots;
             }
         }
-        if (slots > 0) {
-            handler = new ItemStackHandler(slots) {
-                @Override
-                protected void onContentsChanged(int slot) {
-                    setChanged();
-                }
-            };
+        if (capDef != null) {
+            int inputSlots = capDef.inputSlots;
+            int outputSlots = capDef.outputSlots;
+            int extraSlots = capDef.globalSlots + capDef.catalystSlots + capDef.hiddenSlots;
+            ItemCapabilityHandler itemCapHandler = new ItemCapabilityHandler(inputSlots, outputSlots, extraSlots);
+            contentHandler.setItemHandler(itemCapHandler);
+            this.slotCount = itemCapHandler.getTotalSlots();
+        } else {
+            this.slotCount = 0;
         }
-        this.slotCount = slots;
-        this.inventory = handler;
 
         // Initialize fluid tanks from ModEntry's fluidCap definition
         FluidCapDefinition fluidCapDef = null;
@@ -187,37 +154,22 @@ public class GlobalBlockEntity extends BlockEntity {
             }
         }
         if (fluidCapDef != null) {
-            int totalTanks = fluidCapDef.inputTanks.size() + fluidCapDef.outputTanks.size() + fluidCapDef.globalTanks.size();
-            FluidTank[] tanks = new FluidTank[totalTanks];
-            int idx = 0;
-            for (FluidCapDefinition.Tank t : fluidCapDef.inputTanks) {
-                tanks[idx++] = new FluidTank(t.capacity) {
-                    @Override
-                    protected void onContentsChanged() {
-                        setChanged();
-                    }
-                };
+            List<FluidCapDefinition.Tank> allTanks = new ArrayList<>();
+            allTanks.addAll(fluidCapDef.inputTanks);
+            allTanks.addAll(fluidCapDef.outputTanks);
+            allTanks.addAll(fluidCapDef.globalTanks);
+            int totalTanks = allTanks.size();
+            int[] capacities = new int[totalTanks];
+            for (int i = 0; i < totalTanks; i++) {
+                capacities[i] = allTanks.get(i).capacity;
             }
-            for (FluidCapDefinition.Tank t : fluidCapDef.outputTanks) {
-                tanks[idx++] = new FluidTank(t.capacity) {
-                    @Override
-                    protected void onContentsChanged() {
-                        setChanged();
-                    }
-                };
-            }
-            for (FluidCapDefinition.Tank t : fluidCapDef.globalTanks) {
-                tanks[idx++] = new FluidTank(t.capacity) {
-                    @Override
-                    protected void onContentsChanged() {
-                        setChanged();
-                    }
-                };
-            }
-            this.fluidTanks = tanks;
+            int inputTanks = fluidCapDef.inputTanks.size();
+            int outputTanks = fluidCapDef.outputTanks.size();
+            int globalTanks = fluidCapDef.globalTanks.size();
+            FluidCapabilityHandler fluidCapHandler = new FluidCapabilityHandler(inputTanks, outputTanks, globalTanks, capacities);
+            contentHandler.setFluidHandler(fluidCapHandler);
             this.tankCount = totalTanks;
         } else {
-            this.fluidTanks = null;
             this.tankCount = 0;
         }
 
@@ -233,24 +185,12 @@ public class GlobalBlockEntity extends BlockEntity {
             final int cap = energyCapDef.getCapacity();
             final int maxIn = energyCapDef.getInputRate();
             final int maxOut = energyCapDef.getOutputRate();
-            this.energyStorage = new CustomEnergyStorage(cap, maxIn, maxOut) {
-                @Override
-                public int receiveEnergy(int toReceive, boolean simulate) {
-                    int result = super.receiveEnergy(toReceive, simulate);
-                    if (!simulate && result > 0) setChanged();
-                    return result;
-                }
-
-                @Override
-                public int extractEnergy(int toExtract, boolean simulate) {
-                    int result = super.extractEnergy(toExtract, simulate);
-                    if (!simulate && result > 0) setChanged();
-                    return result;
-                }
-            };
+            this.energyStorage = CustomEnergyStorage.create(cap, maxIn, maxOut, this::setChanged);
         } else {
             this.energyStorage = null;
         }
+
+        contentHandler.setBlockEntity(this);
 
         directionFields = initFields(Direction.class);
         booleanFields = initFields(boolean.class);
@@ -499,16 +439,7 @@ public class GlobalBlockEntity extends BlockEntity {
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         saveFullTagData(tag);
-        if (inventory != null) {
-            tag.put("Inventory", inventory.serializeNBT(registries));
-        }
-        if (fluidTanks != null) {
-            ListTag tankList = new ListTag();
-            for (FluidTank tank : fluidTanks) {
-                tankList.add(tank.writeToNBT(registries, new CompoundTag()));
-            }
-            tag.put("FluidTanks", tankList);
-        }
+        tag.put("ContentHandler", contentHandler.serializeNBT(registries));
         if (energyStorage != null) {
             tag.put("Energy", energyStorage.serializeNBT(registries));
         }
@@ -521,14 +452,8 @@ public class GlobalBlockEntity extends BlockEntity {
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         readTagData(tag);
-        if (inventory != null && tag.contains("Inventory")) {
-            inventory.deserializeNBT(registries, tag.getCompound("Inventory"));
-        }
-        if (fluidTanks != null && tag.contains("FluidTanks")) {
-            ListTag tankList = tag.getList("FluidTanks", 10);
-            for (int i = 0; i < Math.min(tankList.size(), fluidTanks.length); i++) {
-                fluidTanks[i].readFromNBT(registries, tankList.getCompound(i));
-            }
+        if (tag.contains("ContentHandler")) {
+            contentHandler.deserializeNBT(registries, tag.getCompound("ContentHandler"));
         }
         if (energyStorage != null && tag.contains("Energy")) {
             energyStorage.deserializeNBT(registries, tag.get("Energy"));
@@ -555,6 +480,7 @@ public class GlobalBlockEntity extends BlockEntity {
      * Override in subclasses to add server-side logic (processing, energy consumption, etc.).
      */
     public void serverTick() {
+        contentHandler.tick();
         recipeInfo.tick();
         if(recipeInfo.changed) {
             setChanged();
@@ -572,9 +498,10 @@ public class GlobalBlockEntity extends BlockEntity {
 
     /** Drops all items from the inventory into the world. Call on block break. */
     public void drops() {
-        if (level == null || inventory == null) return;
-        for (int i = 0; i < inventory.getSlots(); i++) {
-            ItemStack stack = inventory.getStackInSlot(i);
+        if (level == null || !contentHandler.hasItemCapability()) return;
+        ItemCapabilityHandler handler = contentHandler.getItemHandler();
+        for (int i = 0; i < handler.getSlots(); i++) {
+            ItemStack stack = handler.getStackInSlot(i);
             if (!stack.isEmpty()) {
                 net.minecraft.world.Containers.dropItemStack(level, worldPosition.getX(),
                         worldPosition.getY(), worldPosition.getZ(), stack);
@@ -586,19 +513,21 @@ public class GlobalBlockEntity extends BlockEntity {
         List<ItemStack> items = new ArrayList<>();
         List<FluidStack> fluids = new ArrayList<>();
 
-        if (inventory != null && name != null) {
+        if (contentHandler.hasItemCapability() && name != null) {
             ModEntry entry = ModEntries.get(name);
             int inputSlots = (entry != null && entry.itemCap() != null) ? entry.itemCap().inputSlots : 0;
+            ItemCapabilityHandler handler = contentHandler.getItemHandler();
             for (int i = 0; i < inputSlots; i++) {
-                items.add(inventory.getStackInSlot(i));
+                items.add(handler.getStackInSlot(i));
             }
         }
 
-        if (fluidTanks != null && name != null) {
+        if (contentHandler.hasFluidCapability() && name != null) {
             ModEntry entry = ModEntries.get(name);
             int inputTanks = (entry != null && entry.fluidCap() != null) ? entry.fluidCap().inputTanks.size() : 0;
+            FluidCapabilityHandler handler = contentHandler.getFluidHandler();
             for (int i = 0; i < inputTanks; i++) {
-                fluids.add(fluidTanks[i].getFluid());
+                fluids.add(handler.getFluidInTank(i));
             }
         }
 

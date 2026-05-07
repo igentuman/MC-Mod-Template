@@ -26,4 +26,58 @@ public class CustomEnergyStorage extends EnergyStorage {
     public void drainEnergy(int energy) {
         setEnergyStored(this.energy - energy);
     }
+
+    public static CustomEnergyStorage create(int capacity, int maxReceive, int maxExtract, Runnable onChanged) {
+        return new CustomEnergyStorage(capacity, maxReceive, maxExtract) {
+            @Override
+            public int receiveEnergy(int toReceive, boolean simulate) {
+                int result = super.receiveEnergy(toReceive, simulate);
+                if (!simulate && result > 0) onChanged.run();
+                return result;
+            }
+
+            @Override
+            public int extractEnergy(int toExtract, boolean simulate) {
+                int result = super.extractEnergy(toExtract, simulate);
+                if (!simulate && result > 0) onChanged.run();
+                return result;
+            }
+        };
+    }
+
+    public static CustomEnergyStorage create(int capacity, int maxReceive, Runnable onChanged) {
+        return new CustomEnergyStorage(capacity, maxReceive) {
+            @Override
+            public int receiveEnergy(int toReceive, boolean simulate) {
+                int result = super.receiveEnergy(toReceive, simulate);
+                if (!simulate && result > 0) onChanged.run();
+                return result;
+            }
+
+            @Override
+            public int extractEnergy(int toExtract, boolean simulate) {
+                int result = super.extractEnergy(toExtract, simulate);
+                if (!simulate && result > 0) onChanged.run();
+                return result;
+            }
+        };
+    }
+
+    public static CustomEnergyStorage create(int capacity, Runnable onChanged) {
+        return new CustomEnergyStorage(capacity) {
+            @Override
+            public int receiveEnergy(int toReceive, boolean simulate) {
+                int result = super.receiveEnergy(toReceive, simulate);
+                if (!simulate && result > 0) onChanged.run();
+                return result;
+            }
+
+            @Override
+            public int extractEnergy(int toExtract, boolean simulate) {
+                int result = super.extractEnergy(toExtract, simulate);
+                if (!simulate && result > 0) onChanged.run();
+                return result;
+            }
+        };
+    }
 }

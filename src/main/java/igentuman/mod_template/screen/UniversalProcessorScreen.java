@@ -1,21 +1,29 @@
 package igentuman.mod_template.screen;
 
-import igentuman.mod_template.Main;
+import igentuman.mod_template.block_entity.GlobalBlockEntity;
 import igentuman.mod_template.block_entity.UniversalProcessorBE;
 import igentuman.mod_template.container.UniversalProcessorContainer;
+import igentuman.mod_template.registration.ModEntry;
+import igentuman.mod_template.setup.ModEntries;
 import igentuman.mod_template.util.GuiFluidRenderer;
+import igentuman.mod_template.util.SlotDef;
+import igentuman.mod_template.util.SlotsLayout;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import igentuman.mod_template.handler.sided.FluidCapabilityHandler;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static igentuman.mod_template.Main.rl;
 
 public class UniversalProcessorScreen extends AbstractContainerScreen<UniversalProcessorContainer> {
 
     private static final ResourceLocation TEXTURE = rl("textures/gui/processor.png");
+    private final List<SlotWidget> slotWidgets = new ArrayList<>();
 
     public UniversalProcessorScreen(UniversalProcessorContainer menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -26,8 +34,36 @@ public class UniversalProcessorScreen extends AbstractContainerScreen<UniversalP
     @Override
     protected void init() {
         super.init();
-        // Center the title
         this.titleLabelX = (this.imageWidth - this.font.width(this.title)) / 2;
+
+        // Setup slot widgets from layout
+        slotWidgets.clear();
+        SlotsLayout layout = menu.getLayout();
+        if (layout != null) {
+            SlotWidget.RELATIVE_X = leftPos;
+            SlotWidget.RELATIVE_Y = topPos;
+
+            for (int i = 0; i < layout.slots.size(); i++) {
+                SlotDef slotDef = layout.slots.get(i);
+                SlotWidget widget = new SlotWidget(slotDef.x, slotDef.y, 18, 18, Component.empty());
+
+                // Determine if this slot is for fluids
+                ModEntry entry = ModEntries.get(menu.getBlockEntity().name);
+                int inputItemCount = entry.itemCap() != null ? entry.itemCap().inputSlots : 0;
+                int inputFluidCount = entry.fluidCap() != null ? entry.fluidCap().inputTanks.size() : 0;
+                int outputItemCount = entry.itemCap() != null ? entry.itemCap().outputSlots : 0;
+
+                boolean isInputFluid = i >= inputItemCount && i < inputItemCount + inputFluidCount;
+                boolean isOutputFluid = i >= inputItemCount + inputFluidCount + outputItemCount;
+
+                if (isInputFluid || isOutputFluid) {
+                    widget.fluid();
+                }
+
+                slotWidgets.add(widget);
+                this.addRenderableWidget(widget);
+            }
+        }
     }
 
     @Override
@@ -36,24 +72,26 @@ public class UniversalProcessorScreen extends AbstractContainerScreen<UniversalP
         int y = (this.height - this.imageHeight) / 2;
         guiGraphics.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
 
-        // Render progress arrow (example: 24px wide arrow at position 80, 35 in GUI)
+        // Render progress bar
         int progress = menu.getProgress();
         int maxProgress = menu.getMaxProgress();
         if (maxProgress > 0 && progress > 0) {
             int arrowWidth = (int) (24.0f * progress / maxProgress);
             guiGraphics.blit(TEXTURE, x + 80, y + 35, 176, 0, arrowWidth, 17);
         }
+    }
 
-        // Render fluid tanks (18x18 each)
-        UniversalProcessorBE be = menu.getBlockEntity();
+    @Override
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
+        // Render fluid contents (SlotWidgets render the backgrounds)
+        // This is hack, but this way we sure fluids rendered on top of other elements
+        GlobalBlockEntity be = menu.getBlockEntity();
         if (be.hasFluidTanks()) {
-            FluidTank[] tanks = be.fluidTanks;
-            for (int i = 0; i < tanks.length; i++) {
-                int tankX = x + 8 + i * 22;
-                int tankY = y + 17;
-                GuiFluidRenderer.renderFluidTank(guiGraphics, tankX, tankY, 18, 18,
-                        tanks[i].getFluid(), tanks[i].getCapacity());
-            }
+            int x = (this.width - this.imageWidth) / 2;
+            int y = (this.height - this.imageHeight) / 2;
+            FluidCapabilityHandler tanks = be.contentHandler.getFluidHandler();
+            renderFluidTanks(guiGraphics, 0, 0, tanks, false, 0, 0);
         }
     }
 
@@ -61,19 +99,43 @@ public class UniversalProcessorScreen extends AbstractContainerScreen<UniversalP
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
+    }
 
-        // Render fluid tank tooltips
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
-        UniversalProcessorBE be = menu.getBlockEntity();
-        if (be.hasFluidTanks()) {
-            FluidTank[] tanks = be.fluidTanks;
-            for (int i = 0; i < tanks.length; i++) {
-                int tankX = x + 8 + i * 22;
-                int tankY = y + 17;
+    private void renderFluidTanks(GuiGraphics guiGraphics, int x, int y,
+                                   FluidCapabilityHandler tanks, boolean tooltip, int mouseX, int mouseY) {
+        SlotsLayout layout = menu.getLayout();
+        if (layout == null) return;
+
+        ModEntry entry = ModEntries.get(menu.getBlockEntity().name);
+        int inputItemCount  = entry.itemCap()  != null ? entry.itemCap().inputSlots        : 0;
+        int inputFluidCount = entry.fluidCap() != null ? entry.fluidCap().inputTanks.size() : 0;
+        int outputItemCount = entry.itemCap()  != null ? entry.itemCap().outputSlots        : 0;
+
+        int outputFluidOffset = inputItemCount + inputFluidCount + outputItemCount;
+
+        for (int i = 0; i < inputFluidCount && (inputItemCount + i) < layout.slots.size(); i++) {
+            SlotDef def = layout.slots.get(inputItemCount + i);
+            if (tooltip) {
                 GuiFluidRenderer.renderFluidTooltip(guiGraphics, mouseX, mouseY,
-                        tankX, tankY, 18, 18,
-                        tanks[i].getFluid(), tanks[i].getCapacity());
+                        x + def.x, y + def.y, 16, 16,
+                        tanks.getFluidInTank(i), tanks.getTankCapacity(i));
+            } else {
+                GuiFluidRenderer.renderFluidTank(guiGraphics, x + def.x, y + def.y, 16, 16,
+                        tanks.getFluidInTank(i), tanks.getTankCapacity(i));
+            }
+        }
+
+        int outputFluidCount = entry.fluidCap() != null ? entry.fluidCap().outputTanks.size() : 0;
+        for (int i = 0; i < outputFluidCount && (outputFluidOffset + i) < layout.slots.size(); i++) {
+            SlotDef def = layout.slots.get(outputFluidOffset + i);
+            int tankIndex = inputFluidCount + i;
+            if (tooltip) {
+                GuiFluidRenderer.renderFluidTooltip(guiGraphics, mouseX, mouseY,
+                        x + def.x, y + def.y, 18, 18,
+                        tanks.getFluidInTank(tankIndex), tanks.getTankCapacity(tankIndex));
+            } else {
+                GuiFluidRenderer.renderFluidTank(guiGraphics, x + def.x, y + def.y, 18, 18,
+                        tanks.getFluidInTank(tankIndex), tanks.getTankCapacity(tankIndex));
             }
         }
     }

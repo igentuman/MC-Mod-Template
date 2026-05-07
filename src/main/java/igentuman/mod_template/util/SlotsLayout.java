@@ -1,9 +1,10 @@
 package igentuman.mod_template.util;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SlotsLayout {
-    public final HashSet<SlotDef> slots = new HashSet<>();
+    public final List<SlotDef> slots = new ArrayList<>();
 
     public final static SlotsLayout ONE_TO_ONE = SlotsLayout.create().addDefault(30, 30).addBig(115, 30);
     public final static SlotsLayout ONE_TO_TWO = SlotsLayout.create().addDefault(30, 30).addDefault(115, 30).addDefault(135, 30);
