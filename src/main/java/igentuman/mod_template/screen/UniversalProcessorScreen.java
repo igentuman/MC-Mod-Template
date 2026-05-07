@@ -8,7 +8,9 @@ import igentuman.mod_template.setup.ModEntries;
 import igentuman.mod_template.util.GuiFluidRenderer;
 import igentuman.mod_template.util.SlotDef;
 import igentuman.mod_template.util.SlotsLayout;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -35,6 +37,12 @@ public class UniversalProcessorScreen extends AbstractContainerScreen<UniversalP
     protected void init() {
         super.init();
         this.titleLabelX = (this.imageWidth - this.font.width(this.title)) / 2;
+
+        addRenderableWidget(Button.builder(Component.literal("S"),
+                        btn -> Minecraft.getInstance().setScreen(new SideConfigSlotSelectionScreen(this)))
+                .pos(leftPos + 160, topPos + 5)
+                .size(16, 16)
+                .build());
 
         // Setup slot widgets from layout
         slotWidgets.clear();

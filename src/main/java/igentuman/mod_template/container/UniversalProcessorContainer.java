@@ -1,11 +1,16 @@
 package igentuman.mod_template.container;
 
 import igentuman.mod_template.block_entity.UniversalProcessorBE;
+import igentuman.mod_template.handler.SidedContentHandler.RelativeDirection;
+import igentuman.mod_template.handler.SlotModePair;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
 import igentuman.mod_template.util.SlotDef;
 import igentuman.mod_template.util.SlotsLayout;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -102,6 +107,34 @@ public class UniversalProcessorContainer extends AbstractContainerMenu {
 
     public SlotsLayout getLayout() {
         return slotsLayout;
+    }
+
+    public BlockPos getPosition() {
+        return blockEntity.getBlockPos();
+    }
+
+    public SlotModePair.SlotMode getSlotMode(int relativeDir, int slotId) {
+        Direction facing;
+        try {
+            facing = blockEntity.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+        } catch (Exception e) {
+            facing = Direction.NORTH;
+        }
+        RelativeDirection relDir = RelativeDirection.values()[relativeDir];
+        Direction absoluteDir = RelativeDirection.toAbsolute(relDir, facing);
+
+        var itemHandler = blockEntity.contentHandler.getItemHandler();
+        if (itemHandler != null && slotId < itemHandler.getSlots()) {
+            return itemHandler.getModeForAbsoluteSide(absoluteDir, slotId);
+        }
+        var fluidHandler = blockEntity.contentHandler.getFluidHandler();
+        if (fluidHandler != null) {
+            int fluidSlot = slotId - (itemHandler != null ? itemHandler.getSlots() : 0);
+            if (fluidSlot >= 0 && fluidSlot < fluidHandler.getTanks()) {
+                return fluidHandler.getModeForAbsoluteSide(absoluteDir, fluidSlot);
+            }
+        }
+        return SlotModePair.SlotMode.DEFAULT;
     }
 
     @Override

@@ -2,6 +2,7 @@ package igentuman.mod_template;
 
 import igentuman.mod_template.block_entity.GlobalBlockEntity;
 import igentuman.mod_template.config.Common;
+import igentuman.mod_template.network.PacketSideConfigToggle;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
 import igentuman.mod_template.setup.Registers;
@@ -37,6 +38,8 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -66,7 +69,17 @@ public class Main {
 
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::registerCapabilities);
+        modEventBus.addListener(this::registerPayloads);
         modContainer.registerConfig(ModConfig.Type.COMMON, Common.SPEC);
+    }
+
+    private void registerPayloads(RegisterPayloadHandlersEvent event) {
+        PayloadRegistrar registrar = event.registrar(MODID).versioned("1");
+        registrar.playToServer(
+                PacketSideConfigToggle.TYPE,
+                PacketSideConfigToggle.STREAM_CODEC,
+                PacketSideConfigToggle::handle
+        );
     }
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
