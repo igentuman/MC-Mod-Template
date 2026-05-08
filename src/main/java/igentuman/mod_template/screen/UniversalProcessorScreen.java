@@ -3,7 +3,9 @@ package igentuman.mod_template.screen;
 import igentuman.mod_template.block_entity.GlobalBlockEntity;
 import igentuman.mod_template.container.UniversalProcessorContainer;
 import igentuman.mod_template.registration.ModEntry;
+import igentuman.mod_template.screen.element.EnergyBar;
 import igentuman.mod_template.screen.element.ProgressBar;
+import igentuman.mod_template.screen.element.SlotWidget;
 import igentuman.mod_template.setup.ModEntries;
 import igentuman.mod_template.util.GuiFluidRenderer;
 import igentuman.mod_template.util.SlotDef;
@@ -74,6 +76,13 @@ public class UniversalProcessorScreen extends AbstractContainerScreen<UniversalP
         }
         progressBar = new ProgressBar((this.width - this.imageWidth) / 2 + 72, (this.height - this.imageHeight) / 2 + 30);
         addRenderableWidget(progressBar);
+
+        GlobalBlockEntity be = menu.getBlockEntity();
+        if (be.hasEnergyStorage()) {
+            int barX = leftPos + imageWidth - 10;
+            int barY = topPos + 10;
+            addRenderableWidget(new EnergyBar(barX, barY, () -> menu.getBlockEntity().energyStorage));
+        }
     }
 
     @Override

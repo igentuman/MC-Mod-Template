@@ -2,6 +2,7 @@ package igentuman.mod_template.screen;
 
 import igentuman.mod_template.container.UniversalProcessorContainer;
 import igentuman.mod_template.registration.ModEntry;
+import igentuman.mod_template.screen.element.SlotWidget;
 import igentuman.mod_template.setup.ModEntries;
 import igentuman.mod_template.util.SlotsLayout;
 import net.minecraft.client.Minecraft;

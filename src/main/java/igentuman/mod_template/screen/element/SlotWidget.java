@@ -1,4 +1,4 @@
-package igentuman.mod_template.screen;
+package igentuman.mod_template.screen.element;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
