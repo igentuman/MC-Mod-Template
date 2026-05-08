@@ -11,7 +11,8 @@ public class SlotsLayout {
     public final static SlotsLayout TWO_TO_ONE = SlotsLayout.create().addDefault(30, 30).addDefault(50, 30).addDefault(115, 30);
     public final static SlotsLayout TWO_TO_TWO = SlotsLayout.create().addDefault(30, 30).addDefault(50, 30).addDefault(115, 30).addDefault(135, 30);
     public final static SlotsLayout ONE_TO_THREE = SlotsLayout.create().addDefault(30, 30).addDefault(50, 30).addDefault(115, 30).addDefault(135, 30).addDefault(155, 30);
-    public final static SlotsLayout THREE_TO_ONE = SlotsLayout.create().addDefault(30, 30).addDefault(50, 30).addDefault(70, 30).addDefault(135, 30);
+    public final static SlotsLayout THREE_TO_ONE = SlotsLayout.create().addDefault(10, 30).addDefault(30, 30).addDefault(50, 30).addDefault(115, 30);
+    public final static SlotsLayout THREE_TO_TWO = SlotsLayout.create().addDefault(10, 30).addDefault(30, 30).addDefault(50, 30).addDefault(115, 30).addDefault(135, 30);
 
     private SlotsLayout() {}
 

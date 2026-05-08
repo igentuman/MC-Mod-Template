@@ -10,10 +10,6 @@ public class CustomFluidTank extends FluidStackHandler {
         super(tanks, defaultCapacity);
     }
 
-    public CustomFluidTank(int tanks) {
-        super(tanks);
-    }
-
     /**
      * Creates a single-tank handler with the given capacity and a change callback.
      */

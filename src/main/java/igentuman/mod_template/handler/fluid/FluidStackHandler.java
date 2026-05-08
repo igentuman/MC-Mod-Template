@@ -28,12 +28,15 @@ public class FluidStackHandler implements IFluidHandler, INBTSerializable<Compou
     private int[] fillableTanks;
     private int[] drainableTanks;
 
-    public FluidStackHandler() {
-        this(1);
-    }
-
-    public FluidStackHandler(int tanks) {
-        this(tanks, 1000);
+    public FluidStackHandler(int tanks, int[] capacities) {
+        this.tanks = tanks;
+        this.fluids = new FluidStack[tanks];
+        this.capacities = capacities;
+        this.validators = new Predicate[tanks];
+        for (int i = 0; i < tanks; i++) {
+            this.fluids[i] = FluidStack.EMPTY;
+            this.validators[i] = fs -> true;
+        }
     }
 
     @SuppressWarnings("unchecked")

@@ -18,8 +18,8 @@ public class ModEntries {
     public static final ModEntry EXAMPLE_ITEM = addItem("example_item").build();
 
     public static final ModEntry EXAMPLE_MACHINE = addProcessor("example_machine")
-            .withLayout(SlotsLayout.TWO_TO_ONE)
-            .fluidCap(1,1, 0)
+            .withLayout(SlotsLayout.THREE_TO_TWO)
+            .fluidCap(2,2, 0)
             .itemCap(1,0)
             .build();
 

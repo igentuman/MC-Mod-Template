@@ -1,12 +1,12 @@
-package igentuman.mod_template.screen;
+package igentuman.mod_template.screen.element;
 
 import igentuman.mod_template.handler.SlotModePair;
 import igentuman.mod_template.network.PacketSideConfigToggle;
+import igentuman.mod_template.screen.SideConfigScreen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.List;

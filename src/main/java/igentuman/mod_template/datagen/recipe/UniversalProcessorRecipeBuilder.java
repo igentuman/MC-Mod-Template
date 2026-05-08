@@ -3,6 +3,7 @@ package igentuman.mod_template.datagen.recipe;
 import igentuman.mod_template.recipe.UniversalProcessorRecipe;
 import igentuman.mod_template.setup.ModEntries;
 import net.minecraft.advancements.Criterion;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -73,6 +74,12 @@ public class UniversalProcessorRecipeBuilder implements RecipeBuilder {
     }
 
     public UniversalProcessorRecipeBuilder fluidInput(TagKey<Fluid> tag, int amount) {
+        fluidInputs.add(SizedFluidIngredient.of(tag, amount));
+        return this;
+    }
+
+    public UniversalProcessorRecipeBuilder fluidInput(String fluid, int amount) {
+        TagKey<Fluid> tag = TagKey.create(Registries.FLUID, ResourceLocation.fromNamespaceAndPath("c", fluid));
         fluidInputs.add(SizedFluidIngredient.of(tag, amount));
         return this;
     }

@@ -2,6 +2,9 @@ package igentuman.mod_template.datagen.recipe;
 
 import igentuman.mod_template.setup.ModEntries;
 import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
 
@@ -16,6 +19,7 @@ public class ExampleMachineRecipes {
         processor("example_machine")
                 .itemInput(Items.SAND)
                 .fluidInput(Fluids.WATER, 1000)
+                .fluidInput("heavy_water", 1000)
                 .fluidOutput(Fluids.LAVA, 1000)
                 .processTime(200)
                 .energyPerTick(20)

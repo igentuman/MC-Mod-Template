@@ -15,6 +15,7 @@ public class ModLanguageProvider  extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
+        labels();
         for (String name : ModEntries.ENTRIES.keySet()) {
             if(ModEntries.get(name).hasBlock()) {
                 add(ModEntries.get(name).block().get(), convertToName(name));
@@ -59,5 +60,10 @@ public class ModLanguageProvider  extends LanguageProvider {
                 }
             }
         }
+    }
+
+    private void labels() {
+        add("screen.modtemplate.side_config", "Side Configuration");
+        add("screen.modtemplate.slot_selection", "Select Slot");
     }
 }

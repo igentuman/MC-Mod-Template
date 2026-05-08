@@ -5,6 +5,10 @@
     {
       "amount": 1000,
       "fluid": "minecraft:water"
+    },
+    {
+      "amount": 1000,
+      "tag": "c:heavy_water"
     }
   ],
   "fluid_outputs": [

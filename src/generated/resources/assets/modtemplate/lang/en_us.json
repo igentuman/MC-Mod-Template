@@ -9,5 +9,7 @@
   "item.modtemplate.silver_dust": "Silver DUst",
   "item.modtemplate.silver_ingot": "Silver Ingot",
   "item.modtemplate.silver_nugget": "Silver Nugget",
-  "item.modtemplate.silver_plate": "Silver Plate"
+  "item.modtemplate.silver_plate": "Silver Plate",
+  "screen.modtemplate.side_config": "Side Configuration",
+  "screen.modtemplate.slot_selection": "Select Slot"
 }

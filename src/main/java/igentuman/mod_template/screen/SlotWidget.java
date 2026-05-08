@@ -16,6 +16,7 @@ public class SlotWidget extends AbstractWidget {
     public int y;
     public int xOffset = 0;
     public int yOffset = 0;
+    private Runnable onPress = null;
 
     public int X()
     {
@@ -40,6 +41,22 @@ public class SlotWidget extends AbstractWidget {
         super(x, y, width, height, message);
         this.x = x;
         this.y = y;
+    }
+
+    public SlotWidget onPress(Runnable handler) {
+        this.onPress = handler;
+        return this;
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (onPress != null && isActive() && visible
+                && mouseX >= X() && mouseX < X() + width
+                && mouseY >= Y() && mouseY < Y() + height) {
+            onPress.run();
+            return true;
+        }
+        return false;
     }
 
     @Override

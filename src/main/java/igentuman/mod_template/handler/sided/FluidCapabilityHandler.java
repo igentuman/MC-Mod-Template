@@ -22,15 +22,12 @@ public class FluidCapabilityHandler extends AbstractCapabilityHandler {
     public FluidCapabilityHandler(int inputTanks, int outputTanks, int extraTanks, int[] capacities) {
         super(inputTanks, outputTanks, extraTanks);
         int totalTanks = getTotalSlots();
-        this.internal = new FluidStackHandler(totalTanks) {
+        this.internal = new FluidStackHandler(totalTanks, capacities) {
             @Override
             protected void onContentsChanged(int tank) {
                 if (tile != null) tile.setChanged();
             }
         };
-        for (int i = 0; i < Math.min(capacities.length, totalTanks); i++) {
-            this.internal.setTankCapacity(i, capacities[i]);
-        }
     }
 
     public FluidStackHandler getInternalHandler() {
