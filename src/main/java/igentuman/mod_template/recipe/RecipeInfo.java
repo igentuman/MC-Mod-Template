@@ -7,6 +7,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
@@ -38,7 +39,7 @@ public class RecipeInfo {
     public int multiplier = 1;
     public Recipe<?> recipe;
     public Recipe<?> lastRecipe;
-    private final HashMap<String, Recipe<?>> allRecipes = new HashMap<>();
+    private HashMap<String, Recipe<?>> allRecipes = new HashMap<>();
 
     public RecipeInfo(GlobalBlockEntity be) {
         this.be = be;
@@ -263,14 +264,18 @@ public class RecipeInfo {
         return recipe;
     }
 
+    @SuppressWarnings("unchecked")
     public HashMap<String, Recipe<?>> getRecipes() {
         if(allRecipes.isEmpty()) {
-            if(getLevel() != null) {
-                getLevel().getRecipeManager().getRecipes().forEach(r -> {
-                    if (r.value() instanceof UniversalProcessorRecipe) {
-                        allRecipes.put(r.id().toString(), r.value());
-                    }
-                });
+            Level level = getLevel();
+            if (level != null) {
+                ModEntry entry = ModEntries.get(be.name);
+                if (entry != null) {
+                    var recipeType = (RecipeType<UniversalProcessorRecipe>) entry.recipeType().get();
+                    level.getRecipeManager().getAllRecipesFor(recipeType).forEach(r ->
+                            allRecipes.put(r.id().toString(), r.value())
+                    );
+                }
             }
         }
         return allRecipes;

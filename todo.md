@@ -1,8 +1,8 @@
 # TODO
 
 ## SlotsLayout Integration
-- Add SlotsLayout integration to builder
-- Menu and screen will use it for slot positions
+- ~~Add SlotsLayout integration to builder~~
+- ~~Menu and screen will use it for slot positions~~
 
 ## Materials Registration
 - ~~New type `MaterialEntry` - single place to register a material (e.g. platinum)~~
@@ -10,11 +10,12 @@
 - Include world gen settings if needed
 
 ## Networking Support
-- Add networking support for `UniversalProcessor`
+- ~~Add networking support for `UniversalProcessor`~~
 
 ## UniversalProcessor Block Improvements
 - ~~Make `UniversalProcessor` a horizontal directional block~~
 - ~~Update blockstate generator accordingly~~
+- ~~Sided configuration for slots~~
 
 ## Capabilities Integration
 - ~~Integrate capabilities to `UniversalProcessor`~~
