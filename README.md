@@ -38,6 +38,41 @@ When you use `ModEntryBuilder`, the following registries are populated automatic
 | **Bucket Item** | `ITEMS` | Material has a fluid |
 | **JEI Category** | JEI plugin | Automatic for every entry with recipes |
 
+
+## For Developers: Building Your Own Mod
+
+### 1. Fork This Repository
+
+Click **Fork** on GitHub to create your own copy of this template.
+
+### 2. Rename the Mod ID
+
+Replace all occurrences of `modtemplate` and `mod_template` with your chosen mod ID:
+
+- **`gradle.properties`** - update `mod_id`, `mod_name`, `mod_description`, `mod_authors`, and `maven_group`
+- **`src/main/resources/META-INF/neoforge.mods.toml`** - verify property expansion picks up your new values
+- **`src/main/resources/modtemplate.mixins.json`** - rename the file and update the `"package"` and `"refmap"` fields inside
+- **Base package** - rename `src/main/java/igentuman/mod_template/` to match your `maven_group` and `mod_id`
+- **`Main.java`** - update the `@Mod("modtemplate")` annotation value
+- **`build.gradle`** - confirm `mixin { add ... }` references your new mixin JSON name
+
+> **Tip:** Use your IDE's global search-and-replace to catch every reference in one pass.
+
+### 3. Add Your Content
+
+With the mod ID in place, define your content inside [`setup/ModEntries.java`](./src/main/java/igentuman/mod_template/setup/ModEntries.java) using the `ModEntryBuilder` fluent API. The following documentation pages cover the most common scenarios:
+
+- [Processors & Items Registration](./docs/processors-registration.md) - machines, simple items, plain blocks
+- [Materials Registration](./docs/materials-registration.md) - full metal material sets (ore, ingot, dust, fluid, …)
+- [Custom Block Entities](./docs/custom-block-entities.md) - custom block/BE/container/screen classes
+- [Side Configuration System](./docs/side-configuration.md) - per-face push/pull config for machines
+- [JEI Integration](./docs/jei-integration.md) - automatic and custom recipe categories
+- [KubeJS Support](./docs/kubejs-support.md) - script processor recipes with KubeJS
+
+After adding content, run `./gradlew runData` to regenerate assets and data, then `./gradlew runClient` to test in-game.
+
+---
+
 ## Project Structure
 
 ```
@@ -92,38 +127,6 @@ src/main/java/igentuman/mod_template/
 - [Side Configuration System](./docs/side-configuration.md) - Per-slot, per-face push/pull configuration for machines
 - [JEI Integration](./docs/jei-integration.md) - Automatic and custom JEI recipe category setup
 - [KubeJS Support](./docs/kubejs-support.md) - Script processor recipes with KubeJS
-
-## For Developers: Building Your Own Mod
-
-### 1. Fork This Repository
-
-Click **Fork** on GitHub to create your own copy of this template.
-
-### 2. Rename the Mod ID
-
-Replace all occurrences of `modtemplate` and `mod_template` with your chosen mod ID:
-
-- **`gradle.properties`** - update `mod_id`, `mod_name`, `mod_description`, `mod_authors`, and `maven_group`
-- **`src/main/resources/META-INF/neoforge.mods.toml`** - verify property expansion picks up your new values
-- **`src/main/resources/modtemplate.mixins.json`** - rename the file and update the `"package"` and `"refmap"` fields inside
-- **Base package** - rename `src/main/java/igentuman/mod_template/` to match your `maven_group` and `mod_id`
-- **`Main.java`** - update the `@Mod("modtemplate")` annotation value
-- **`build.gradle`** - confirm `mixin { add ... }` references your new mixin JSON name
-
-> **Tip:** Use your IDE's global search-and-replace to catch every reference in one pass.
-
-### 3. Add Your Content
-
-With the mod ID in place, define your content inside [`setup/ModEntries.java`](./src/main/java/igentuman/mod_template/setup/ModEntries.java) using the `ModEntryBuilder` fluent API. The following documentation pages cover the most common scenarios:
-
-- [Processors & Items Registration](./docs/processors-registration.md) - machines, simple items, plain blocks
-- [Materials Registration](./docs/materials-registration.md) - full metal material sets (ore, ingot, dust, fluid, …)
-- [Custom Block Entities](./docs/custom-block-entities.md) - custom block/BE/container/screen classes
-- [Side Configuration System](./docs/side-configuration.md) - per-face push/pull config for machines
-- [JEI Integration](./docs/jei-integration.md) - automatic and custom recipe categories
-- [KubeJS Support](./docs/kubejs-support.md) - script processor recipes with KubeJS
-
-After adding content, run `./gradlew runData` to regenerate assets and data, then `./gradlew runClient` to test in-game.
 
 ---
 
