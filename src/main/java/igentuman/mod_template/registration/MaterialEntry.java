@@ -39,6 +39,10 @@ public class MaterialEntry {
 
     public FluidDefinition fluidDefinition = null;
 
+    public int worldgenMinHeight = 0;
+    public int worldgenMaxHeight = 0;
+    public int worldgenQty = 0;
+
     private RegisteredEntry entry;
 
     public MaterialEntry(String name, int color) {
@@ -121,6 +125,14 @@ public class MaterialEntry {
     public boolean hasRawOre() { return rawOreSupplier != null; }
     public boolean hasPlate() { return plateSupplier != null; }
     public boolean hasFluid() { return fluidDefinition != null; }
+    public boolean hasWorldgenConfig() { return worldgenQty > 0; }
+
+    public MaterialEntry worldgenConfig(int minHeight, int maxHeight, int qty) {
+        this.worldgenMinHeight = minHeight;
+        this.worldgenMaxHeight = maxHeight;
+        this.worldgenQty = qty;
+        return this;
+    }
 
     public DeferredBlock<Block> oreBlock() { return entry.oreBlock(); }
     public DeferredBlock<Block> storageBlock() { return entry.storageBlock(); }
@@ -159,6 +171,7 @@ public class MaterialEntry {
 
         // Molten metal fluid by default
         this.setFluidDefinition(FluidDefinition.metal());
+        this.worldgenConfig(-64, 64, 9);
 
         return this;
     }

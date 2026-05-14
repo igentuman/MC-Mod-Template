@@ -170,6 +170,14 @@ public class ModEntryBuilder {
         return this;
     }
 
+    public ModEntryBuilder worldgenConfig(int minHeight, int maxHeight, int qty) {
+        if(material == null) {
+            material(0);
+        }
+        material.worldgenConfig(minHeight, maxHeight, qty);
+        return this;
+    }
+
     public ModEntryBuilder withLayout(SlotsLayout layout) {
         this.slotsLayout = layout;
         return this;
