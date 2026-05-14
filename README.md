@@ -16,7 +16,7 @@ A universal template for building Minecraft mods on **NeoForge 1.21.1**. The cor
 - **Recipe datagen builder** - `UniversalProcessorRecipeBuilder` with fluent API for item/fluid inputs/outputs, process time, and energy cost
 - **Dynamic JEI integration** - automatically registers JEI recipe categories, catalysts, and recipes for every processor entry
 - **KubeJS support** - processor recipe schemas auto-registered for all entries with recipes
-- **World generation hooks** - preconfigured modules for configured features, placed features, biome modifiers, biomes, and dimensions
+- **Automatic ore world generation** - `addMetalOreMaterial` / `addCrystalOreMaterial` auto-registers configured features, placed features, and biome modifiers; height range and vein counts driven by a live TOML config via `WorldGen`
 
 ## Auto-Registered Components
 
@@ -37,6 +37,9 @@ When you use `ModEntryBuilder`, the following registries are populated automatic
 | **Molten Fluid** | `FLUID_TYPES` / `FLUIDS` | Material has a `FluidDefinition` |
 | **Bucket Item** | `ITEMS` | Material has a fluid |
 | **JEI Category** | JEI plugin | Automatic for every entry with recipes |
+| **Configured Feature** | Datapack / worldgen | Material has `worldgenQty > 0` (default for `metalOre` / `crystalOre`) |
+| **Placed Feature** | Datapack / worldgen | Same |
+| **Biome Modifier** | Datapack / worldgen | Same; targets `IS_OVERWORLD` biomes |
 
 
 ## For Developers: Building Your Own Mod
@@ -68,6 +71,7 @@ With the mod ID in place, define your content inside [`setup/ModEntries.java`](.
 - [Side Configuration System](./docs/side-configuration.md) - per-face push/pull config for machines
 - [JEI Integration](./docs/jei-integration.md) - automatic and custom recipe categories
 - [KubeJS Support](./docs/kubejs-support.md) - script processor recipes with KubeJS
+- [Materials Registration](./docs/materials-registration.md#world-generation) - ore world generation via builder
 
 After adding content, run `./gradlew runData` to regenerate assets and data, then `./gradlew runClient` to test in-game.
 
@@ -114,6 +118,15 @@ src/main/java/igentuman/mod_template/
       ModBlockTagProvider.java       - Block tag datagen
       ModItemTagProvider.java        - Item tag datagen
       ModFluidTagProvider.java       - Fluid tag datagen
+  setup/level/
+    ModConfiguredFeatures.java       - Ore configured features (auto-generated per material)
+    ModPlacedFeatures.java           - Ore placed features with height/count placement
+    ModBiomeModifiers.java           - Attaches placed features to overworld biomes
+    ConfigurableOrePlacement.java    - Custom PlacementModifier reading from WorldGen config
+    ModBiomes.java                   - Stub for custom biome registration
+    ModDimensions.java               - Stub for custom dimension registration
+  config/
+    WorldGen.java                    - TOML config (min/max height, vein size, veins per chunk)
   compat/
     jei/ModJeiPlugin.java            - Dynamic JEI integration
     kubejs/ModKubeJSPlugin.java      - KubeJS recipe schema registration
@@ -127,6 +140,7 @@ src/main/java/igentuman/mod_template/
 - [Side Configuration System](./docs/side-configuration.md) - Per-slot, per-face push/pull configuration for machines
 - [JEI Integration](./docs/jei-integration.md) - Automatic and custom JEI recipe category setup
 - [KubeJS Support](./docs/kubejs-support.md) - Script processor recipes with KubeJS
+- [Materials Registration](./docs/materials-registration.md) - Register full metal materials including automatic ore world generation
 
 ---
 
@@ -144,7 +158,6 @@ Requires **Java 21**.
 
 ## Planned Features
 
-- **Ore world generation via builder** - extend material registration with automatic world-gen setup, deepslate variants, and loot tables
 - **Multiblock entry builder** - define multi-block structure, validation logic, and controller block in one place
 - **Dynamic config for entries** - allow players to disable items/blocks via config, excluding them from creative tabs and JEI
 

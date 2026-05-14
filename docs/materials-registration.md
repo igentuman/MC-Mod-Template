@@ -128,6 +128,7 @@ Available removal methods:
 | `.noPlate()` | Plate item |
 | `.noNugget()` | Nugget item |
 | `.noFluid()` | Molten fluid, liquid block, and bucket |
+| `.worldgenConfig(min, max, 0)` | Disable ore world generation (set qty to 0) |
 
 ## Step-by-Step Implementation
 
@@ -227,15 +228,53 @@ Register it in `ModRecipeProvider`:
 SilverRecipes.generate(output);
 ```
 
-### 7. Add ore world generation (manual, builder planned)
+### 7. World generation
 
-World gen for ores is currently configured manually in `setup/level/`:
+<a name="world-generation"></a>
 
-- `ModConfiguredFeatures.java` - define ore feature with stone/deepslate targets
-- `ModPlacedFeatures.java` - set height range and vein count
-- `ModBiomeModifiers.java` - attach placed feature to overworld biome modifier
+Ore world generation is **automatic** for materials registered via `metalOre()`. `crystalOre()` does not set worldgen defaults — call `.worldgenConfig(...)` explicitly if you need it. No manual JSON or datapack class edits needed.
 
-The data JSONs are generated via `ModDatapackProvider` when you run `./gradlew runData`.
+**Default values** applied by `metalOre()`:
+
+| Parameter | Default |
+|---|---|
+| Min height | -64 |
+| Max height | 64 |
+| Vein size | 9 |
+| Veins per chunk | 4 |
+
+To override defaults, chain `.worldgenConfig(minHeight, maxHeight, veinSize)` on the `MaterialEntry`:
+
+```java
+// ModEntries.java - inside addMetalOreMaterial builder chain
+public static final ModEntry SILVER = addMetalOreMaterial("silver", 0xC0C0C0)
+        .worldgenConfig(-32, 48, 7)   // minHeight, maxHeight, veinSize
+        .build();
+```
+
+All three values are also **runtime-configurable** via a generated TOML config at `config/<modid>-worldgen-server.toml`:
+
+```toml
+[silver]
+  # Minimum Y level for ore generation
+  min_height = -32
+  # Maximum Y level for ore generation
+  max_height = 48
+  # Number of blocks per ore vein
+  vein_size = 7
+  # Number of ore veins attempted per chunk
+  veins_per_chunk = 4
+```
+
+**What the system auto-registers per material** (when `hasWorldgenConfig()` is true):
+
+- `ModConfiguredFeatures` — ore feature targeting both `STONE_ORE_REPLACEABLES` and `DEEPSLATE_ORE_REPLACEABLES` tag blocks
+- `ModPlacedFeatures` — placement with `CountPlacement`, `InSquarePlacement`, `ConfigurableOrePlacement` (reads runtime config for Y range), and `BiomeFilter`
+- `ModBiomeModifiers` — adds the placed feature to all `IS_OVERWORLD` biomes at `UNDERGROUND_ORES` generation step
+
+Run `./gradlew runData` to emit the datapack JSONs into `src/generated/resources/data/`.
+
+To **disable worldgen** for a material, pass `qty = 0` to `.worldgenConfig()` or call `.noOre()` — worldgen is skipped automatically when the material has no ore block or `worldgenQty == 0`.
 
 ## Accessing Material Items/Blocks at Runtime
 
