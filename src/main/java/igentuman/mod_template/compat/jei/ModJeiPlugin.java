@@ -1,6 +1,7 @@
 package igentuman.mod_template.compat.jei;
 
 import igentuman.mod_template.Main;
+import igentuman.mod_template.compat.ae2.JEI2PatternEncoderTransfer;
 import igentuman.mod_template.recipe.UniversalProcessorRecipe;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
@@ -10,11 +11,13 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.registration.IRecipeTransferRegistration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.neoforged.fml.ModList;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +55,16 @@ public class ModJeiPlugin implements IModPlugin {
             if (!entry.hasRecipes() || !entry.hasItem()) continue;
             RecipeType<UniversalProcessorRecipe> jeiType = getOrCreateRecipeType(entry);
             registration.addRecipeCatalyst(new ItemStack(entry.item().get()), jeiType);
+        }
+    }
+
+    @Override
+    public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
+        if (!ModList.get().isLoaded("ae2")) return;
+        for (ModEntry entry : ModEntries.ENTRIES.values()) {
+            if (!entry.hasRecipes()) continue;
+            RecipeType<UniversalProcessorRecipe> jeiType = getOrCreateRecipeType(entry);
+            registration.addRecipeTransferHandler(new JEI2PatternEncoderTransfer(jeiType), jeiType);
         }
     }
 

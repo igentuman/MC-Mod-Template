@@ -1,5 +1,6 @@
 package igentuman.mod_template.screen.element;
 
+import igentuman.mod_template.util.TextUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -48,7 +49,7 @@ public class EnergyBar extends AbstractWidget {
             int safeMax = energy.getMaxEnergyStored();
             graphics.renderComponentTooltip(
                     Minecraft.getInstance().font,
-                    List.of(Component.literal(safeStored + " FE / " + safeMax + " FE")),
+                    List.of(Component.literal(TextUtils.formatEnergy(safeStored) + " / " + TextUtils.formatEnergy(safeMax))),
                     mouseX, mouseY
             );
         }

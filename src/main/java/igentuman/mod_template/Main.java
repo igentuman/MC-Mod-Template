@@ -3,6 +3,7 @@ package igentuman.mod_template;
 import igentuman.mod_template.block_entity.GlobalBlockEntity;
 import igentuman.mod_template.config.Common;
 import igentuman.mod_template.config.WorldGen;
+import igentuman.mod_template.network.PacketAE2PatternTransfer;
 import igentuman.mod_template.network.PacketSideConfigToggle;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
@@ -69,6 +70,11 @@ public class Main {
                 PacketSideConfigToggle.TYPE,
                 PacketSideConfigToggle.STREAM_CODEC,
                 PacketSideConfigToggle::handle
+        );
+        registrar.playToServer(
+                PacketAE2PatternTransfer.TYPE,
+                PacketAE2PatternTransfer.STREAM_CODEC,
+                PacketAE2PatternTransfer::handle
         );
     }
 

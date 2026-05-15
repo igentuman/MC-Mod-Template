@@ -19,6 +19,10 @@ public class ModLanguageProvider  extends LanguageProvider {
         for (String name : ModEntries.ENTRIES.keySet()) {
             if(ModEntries.get(name).hasBlock()) {
                 add(ModEntries.get(name).block().get(), convertToName(name));
+                if(ModEntries.get(name).hasRecipes()) {
+                    add("emi.category."+MODID+"."+name, convertToName(name));
+
+                }
                 continue;
             }
             if(ModEntries.get(name).hasItem()) {

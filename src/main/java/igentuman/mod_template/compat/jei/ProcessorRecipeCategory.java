@@ -22,6 +22,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
+import static igentuman.mod_template.util.TextUtils.__;
+
 public class ProcessorRecipeCategory implements IRecipeCategory<UniversalProcessorRecipe> {
 
     private static final int SLOT_SIZE = 18;
@@ -30,7 +32,7 @@ public class ProcessorRecipeCategory implements IRecipeCategory<UniversalProcess
     private static final int START_Y = 1;
     private static final int OUTPUT_GAP = 30;
 
-    private final RecipeType<UniversalProcessorRecipe> recipeType;
+    public final RecipeType<UniversalProcessorRecipe> recipeType;
     private final ModEntry modEntry;
     private final IDrawable background;
     private final IDrawable icon;
@@ -44,7 +46,7 @@ public class ProcessorRecipeCategory implements IRecipeCategory<UniversalProcess
     public ProcessorRecipeCategory(IGuiHelper guiHelper, ModEntry entry, RecipeType<UniversalProcessorRecipe> recipeType) {
         this.recipeType = recipeType;
         this.modEntry = entry;
-        this.title = Component.translatable("block." + Main.MODID + "." + entry.name());
+        this.title = __("block." + Main.MODID + "." + entry.name());
 
         ItemCapDefinition itemCap = entry.itemCap();
         FluidCapDefinition fluidCap = entry.fluidCap();

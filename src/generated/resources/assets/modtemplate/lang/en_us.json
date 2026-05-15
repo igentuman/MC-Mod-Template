@@ -2,6 +2,7 @@
   "block.modtemplate.example_machine": "Example Machine",
   "block.modtemplate.silver_block": "Silver Block",
   "block.modtemplate.silver_ore": "Silver Ore",
+  "emi.category.modtemplate.example_machine": "Example Machine",
   "fluid_type.modtemplate.molten_silver": "Molten Silver",
   "item.modtemplate.example_item": "Example Item",
   "item.modtemplate.molten_silver_bucket": "Molten Silver Bucket",
