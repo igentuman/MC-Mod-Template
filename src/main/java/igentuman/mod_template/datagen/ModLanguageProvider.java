@@ -69,6 +69,8 @@ public class ModLanguageProvider  extends LanguageProvider {
     private void labels() {
         add("screen.modtemplate.side_config", "Side Configuration");
         add("screen.modtemplate.slot_selection", "Select Slot");
+        add("screen.modtemplate.multiblock.assembled", "Assembled");
+        add("screen.modtemplate.multiblock.not_assembled", "Not Assembled");
         add("tooltip.fluid.empty", "Empty");
     }
 }

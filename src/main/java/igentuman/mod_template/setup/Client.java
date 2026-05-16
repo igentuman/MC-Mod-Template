@@ -1,14 +1,18 @@
 package igentuman.mod_template.setup;
 
 import igentuman.mod_template.Main;
+import igentuman.mod_template.container.MultiblockControllerContainer;
+import igentuman.mod_template.container.MultiblockPortContainer;
 import igentuman.mod_template.container.UniversalProcessorContainer;
+import igentuman.mod_template.block.MultiblockControllerBlock;
+import igentuman.mod_template.block.MultiblockPartBlock;
 import igentuman.mod_template.registration.MaterialEntry;
 import igentuman.mod_template.registration.MaterialFluidType;
 import igentuman.mod_template.registration.ModEntry;
+import igentuman.mod_template.screen.MultiblockControllerScreen;
+import igentuman.mod_template.screen.MultiblockPortScreen;
 import igentuman.mod_template.screen.UniversalProcessorScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.api.distmarker.Dist;
@@ -17,7 +21,6 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
@@ -45,10 +48,25 @@ public class Client {
     static void registerScreens(RegisterMenuScreensEvent event) {
         ModEntries.ENTRIES.values().stream()
                 .filter(ModEntry::hasMenu)
-                .forEach(entry -> event.register(
-                        (MenuType<UniversalProcessorContainer>) (MenuType<?>) entry.menu().get(),
-                        UniversalProcessorScreen::new
-                ));
+                .forEach(entry -> {
+                    var block = entry.block() != null ? entry.block().get() : null;
+                    if (block instanceof MultiblockControllerBlock) {
+                        event.register(
+                                (MenuType<MultiblockControllerContainer>) (MenuType<?>) entry.menu().get(),
+                                MultiblockControllerScreen::new
+                        );
+                    } else if (block instanceof MultiblockPartBlock) {
+                        event.register(
+                                (MenuType<MultiblockPortContainer>) (MenuType<?>) entry.menu().get(),
+                                MultiblockPortScreen::new
+                        );
+                    } else {
+                        event.register(
+                                (MenuType<UniversalProcessorContainer>) (MenuType<?>) entry.menu().get(),
+                                UniversalProcessorScreen::new
+                        );
+                    }
+                });
     }
 
     /**

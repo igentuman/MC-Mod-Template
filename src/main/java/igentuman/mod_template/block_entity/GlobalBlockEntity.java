@@ -84,7 +84,7 @@ public class GlobalBlockEntity extends BlockEntity {
     @NBTField(syncToClient = true)
     public int maxProgress = 100;
 
-    private boolean wasChanged = false;
+    protected boolean wasChanged = false;
 
     public boolean hasInventory() {
         return contentHandler.hasItemCapability();
@@ -96,6 +96,10 @@ public class GlobalBlockEntity extends BlockEntity {
 
     public boolean hasEnergyStorage() {
         return energyStorage != null;
+    }
+
+    public void markDirty() {
+        wasChanged = true;
     }
 
     /**

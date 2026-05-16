@@ -6,7 +6,13 @@ import igentuman.mod_template.util.caps.FluidCapDefinition;
 import igentuman.mod_template.util.caps.ItemCapDefinition;
 import igentuman.mod_template.block.UniversalProcessorBlock;
 import igentuman.mod_template.block_entity.UniversalProcessorBE;
+import igentuman.mod_template.container.MultiblockControllerContainer;
+import igentuman.mod_template.container.MultiblockPortContainer;
 import igentuman.mod_template.container.UniversalProcessorContainer;
+import igentuman.mod_template.block.MultiblockControllerBlock;
+import igentuman.mod_template.block.MultiblockPartBlock;
+import igentuman.mod_template.block_entity.MultiblockControllerBE;
+import igentuman.mod_template.block_entity.MultiblockPartBE;
 import igentuman.mod_template.recipe.UniversalProcessorRecipe;
 import igentuman.mod_template.recipe.UniversalProcessorRecipeSerializer;
 import net.minecraft.core.BlockPos;
@@ -30,6 +36,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import org.apache.commons.lang3.function.TriFunction;
 
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.function.Function;
 
@@ -51,6 +58,7 @@ public class ModEntryBuilder {
     private Supplier<RecipeSerializer<?>> recipeSerializerSupplier;
     public MaterialEntry material;
     private SlotsLayout slotsLayout;
+    private DeferredHolder<BlockEntityType<?>, BlockEntityType<?>> registeredBe;
 
     private ModEntryBuilder(String name) {
         this.name = name;
@@ -183,6 +191,58 @@ public class ModEntryBuilder {
         return this;
     }
 
+    @SuppressWarnings("unchecked")
+    public static ModEntryBuilder addMultiblockController(String name) {
+        ModEntryBuilder b = add(name);
+        b.blockSupplier = () -> new MultiblockControllerBlock(defaultMultiblockProps(), name,
+                () -> (BlockEntityType<? extends MultiblockControllerBE>) b.registeredBe.get());
+        b.entitySupplierFactory = block -> () -> BlockEntityType.Builder.of(
+                (pos, state) -> new MultiblockControllerBE(b.registeredBe.get(), pos, state, name),
+                block
+        ).build(null);
+        b.menuType = () -> IMenuTypeExtension.create(
+                (IContainerFactory<MultiblockControllerContainer>) MultiblockControllerContainer::new);
+        return b.withRecipes();
+    }
+
+    public static ModEntry addMultiblockPart(String name) {
+        return addMultiblockPart(name, defaultMultiblockProps());
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static ModEntry addMultiblockPart(String name, BlockBehaviour.Properties props) {
+        final DeferredHolder<BlockEntityType<?>, BlockEntityType<?>>[] beHolder = new DeferredHolder[1];
+
+        DeferredBlock<Block> block = BLOCKS.register(name, () ->
+                new MultiblockPartBlock(props, name,
+                        () -> (BlockEntityType<? extends MultiblockPartBE>) beHolder[0].get()));
+
+        DeferredHolder<BlockEntityType<?>, ? extends BlockEntityType<?>> beReg =
+                BLOCK_ENTITIES.register(name, () -> BlockEntityType.Builder.of(
+                        (pos, state) -> new MultiblockPartBE(beHolder[0].get(), pos, state, name),
+                        block.get()
+                ).build(null));
+        beHolder[0] = (DeferredHolder<BlockEntityType<?>, BlockEntityType<?>>) (DeferredHolder) beReg;
+
+        DeferredItem<Item> item = ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
+
+        DeferredHolder<MenuType<?>, MenuType<?>> menu =
+                (DeferredHolder<MenuType<?>, MenuType<?>>) (DeferredHolder<?, ?>)
+                        CONTAINERS.register(name, () -> IMenuTypeExtension.create(
+                                (IContainerFactory<MultiblockPortContainer>) MultiblockPortContainer::new));
+
+        ModEntry entry = new ModEntry(name, block, item, menu, beHolder[0], false, null, null, null, null, null, null, null, Set.of());
+        ENTRIES.put(name, entry);
+        return entry;
+    }
+
+    private static BlockBehaviour.Properties defaultMultiblockProps() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.METAL)
+                .strength(3.5f, 6.0f)
+                .requiresCorrectToolForDrops();
+    }
+
     public static ModEntryBuilder addProcessor(String name) {
         return add(name)
                 .block(UniversalProcessorBlock::new)
@@ -224,6 +284,11 @@ public class ModEntryBuilder {
 
     public ModEntryBuilder withEnergyInput(int capacity) {
         this.energy = EnergyCapDefinition.processor(capacity);
+        return this;
+    }
+
+    public ModEntryBuilder withEnergyOutput(int capacity) {
+        this.energy = EnergyCapDefinition.generator(capacity);
         return this;
     }
 
@@ -281,6 +346,7 @@ public class ModEntryBuilder {
                     (DeferredHolder<BlockEntityType<?>, BlockEntityType<?>>)
                             BLOCK_ENTITIES.register(name, () -> entitySupplierFactory.apply(finalBlock.get()).get());
             blockEntity = entityCast;
+            this.registeredBe = entityCast;
         }
         if (menuType != null) {
             @SuppressWarnings("unchecked")
@@ -309,11 +375,9 @@ public class ModEntryBuilder {
             material.build();
         }
 
-        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer, material, itemCapDefinition, fluidCapDefinition, energy, slotsLayout);
+        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer, material, itemCapDefinition, fluidCapDefinition, energy, slotsLayout, Set.of());
         ENTRIES.put(name, entry);
         return entry;
 
     }
-
-
 }

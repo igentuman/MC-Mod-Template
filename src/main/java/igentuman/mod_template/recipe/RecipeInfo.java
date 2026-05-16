@@ -71,17 +71,18 @@ public class RecipeInfo {
             return;
         }
 
-        // If recipe requires energy, check and consume it before progressing
-        if (energyPerTick > 0) {
-            if (be.energyStorage == null) {
-                return; // no energy storage, cannot process
-            }
-            int required = energyPerTick * multiplier;
+        if (be.energyStorage == null) {
+            return; // no energy storage, cannot process
+        }
+        int required = energyPerTick * multiplier;
+        if(required > 0) {
             int extracted = be.energyStorage.getEnergyStored() >= required ? required : 0;
             if (extracted < required) {
                 return; // not enough energy, stall
             }
             be.energyStorage.drainEnergy(required);
+        } else  {
+            be.energyStorage.setEnergyStored(be.energyStorage.getEnergyStored()-required);
         }
 
         ticks+=multiplier;

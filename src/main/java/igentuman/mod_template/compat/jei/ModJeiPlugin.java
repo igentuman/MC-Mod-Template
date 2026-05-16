@@ -3,9 +3,12 @@ package igentuman.mod_template.compat.jei;
 import igentuman.mod_template.Main;
 import igentuman.mod_template.compat.ae2.JEI2PatternEncoderTransfer;
 import igentuman.mod_template.config.Processors;
+import igentuman.mod_template.multiblock.MultiblockEntry;
+import igentuman.mod_template.multiblock.MultiblockRegistry;
 import igentuman.mod_template.recipe.UniversalProcessorRecipe;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
+import igentuman.mod_template.util.MultiblockStructure;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.recipe.RecipeType;
@@ -20,6 +23,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.neoforged.fml.ModList;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +52,8 @@ public class ModJeiPlugin implements IModPlugin {
             RecipeType<UniversalProcessorRecipe> jeiType = getOrCreateRecipeType(entry);
             registration.addRecipeCategories(new ProcessorRecipeCategory(guiHelper, entry, jeiType));
         }
+
+        registration.addRecipeCategories(new MultiblockExampleCategory(guiHelper));
     }
 
     @Override
@@ -88,6 +94,17 @@ public class ModJeiPlugin implements IModPlugin {
                     .toList();
 
             registration.addRecipes(jeiType, recipes);
+        }
+
+        List<MultiblockStructureRecipe> mbRecipes = new ArrayList<>();
+        for (MultiblockEntry mb : MultiblockRegistry.ENTRIES.values()) {
+            if (!mb.isBuildable()) continue;
+            MultiblockStructure structure = mb.getExampleStructure();
+            if (structure == null) continue;
+            mbRecipes.add(new MultiblockStructureRecipe(mb, structure));
+        }
+        if (!mbRecipes.isEmpty()) {
+            registration.addRecipes(MultiblockExampleCategory.TYPE, mbRecipes);
         }
     }
 }

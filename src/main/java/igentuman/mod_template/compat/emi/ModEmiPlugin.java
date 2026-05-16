@@ -8,9 +8,12 @@ import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiStack;
 import igentuman.mod_template.Main;
 import igentuman.mod_template.config.Processors;
+import igentuman.mod_template.multiblock.MultiblockEntry;
+import igentuman.mod_template.multiblock.MultiblockRegistry;
 import igentuman.mod_template.recipe.UniversalProcessorRecipe;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
+import igentuman.mod_template.util.MultiblockStructure;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -74,6 +77,21 @@ public class ModEmiPlugin implements EmiPlugin {
                 ResourceLocation recipeId = Main.rl("/" + entry.name() + "/" + i);
                 registry.addRecipe(new ProcessorEmiRecipe(category, recipeId, recipes.get(i), entry));
             }
+        }
+
+        EmiRecipeCategory mbCategory = new EmiRecipeCategory(
+                Main.rl("multiblock_examples"),
+                EmiStack.of(new ItemStack(net.minecraft.world.level.block.Blocks.IRON_BLOCK)));
+        boolean mbCategoryAdded = false;
+        for (MultiblockEntry mb : MultiblockRegistry.ENTRIES.values()) {
+            if (!mb.isBuildable()) continue;
+            MultiblockStructure structure = mb.getExampleStructure();
+            if (structure == null) continue;
+            if (!mbCategoryAdded) {
+                registry.addCategory(mbCategory);
+                mbCategoryAdded = true;
+            }
+            registry.addRecipe(new MultiblockExampleEmiRecipe(mbCategory, mb, structure));
         }
     }
 }

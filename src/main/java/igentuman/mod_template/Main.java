@@ -1,24 +1,30 @@
 package igentuman.mod_template;
 
 import igentuman.mod_template.block_entity.GlobalBlockEntity;
-import igentuman.mod_template.config.Common;
-import igentuman.mod_template.config.Materials;
-import igentuman.mod_template.config.Processors;
-import igentuman.mod_template.config.WorldGen;
+import igentuman.mod_template.config.*;
 import igentuman.mod_template.compat.cc.CCCompatHandler;
+import igentuman.mod_template.handler.event.ServerEvents;
+import igentuman.mod_template.multiblock.MultiblockEntry;
+import igentuman.mod_template.multiblock.MultiblockRegistry;
+import igentuman.mod_template.block_entity.MultiblockPartBE;
+import igentuman.mod_template.network.PacketMultiblockBroken;
+import igentuman.mod_template.network.PacketMultiblockFormed;
 import igentuman.mod_template.network.PacketAE2PatternTransfer;
 import igentuman.mod_template.network.PacketSideConfigToggle;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
 import igentuman.mod_template.setup.Registers;
+import igentuman.mod_template.util.MultiblocksProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
@@ -28,7 +34,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -37,6 +42,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 public class Main {
     public static final String MODID = "modtemplate";
     public static final Logger LOGGER = LogUtils.getLogger();
+    public static int TICK_COUNTER = 0;
 
     // Creates a creative tab with the id "modtemplate:example_tab" for the example item, that is placed after the combat tab
 /*    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
@@ -52,9 +58,7 @@ public class Main {
         modEventBus.addListener(this::commonSetup);
         Registers.init(modEventBus);
         ModEntries.init();
-
-        NeoForge.EVENT_BUS.register(this);
-
+        NeoForge.EVENT_BUS.register(new ServerEvents());
         WorldGen.init(
                 ModEntries.ENTRIES.values().stream()
                         .map(ModEntry::materialEntry)
@@ -64,6 +68,10 @@ public class Main {
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(this::registerPayloads);
+        NeoForge.EVENT_BUS.addListener(this::onAddReloadListener);
+        if (FMLEnvironment.dist.isClient()) {
+            modEventBus.addListener(this::registerClientReloadListeners);
+        }
         if (ModList.get().isLoaded("computercraft")) {
             CCCompatHandler.register(modEventBus);
         }
@@ -71,6 +79,7 @@ public class Main {
         modContainer.registerConfig(ModConfig.Type.COMMON, WorldGen.SPEC, MODID + "/worldgen.toml");
         modContainer.registerConfig(ModConfig.Type.COMMON, Materials.SPEC, MODID + "/materials.toml");
         modContainer.registerConfig(ModConfig.Type.COMMON, Processors.SPEC, MODID + "/processors.toml");
+        modContainer.registerConfig(ModConfig.Type.COMMON, Multiblocks.SPEC, MODID + "/multiblocks.toml");
     }
 
     private void registerPayloads(RegisterPayloadHandlersEvent event) {
@@ -84,6 +93,16 @@ public class Main {
                 PacketAE2PatternTransfer.TYPE,
                 PacketAE2PatternTransfer.STREAM_CODEC,
                 PacketAE2PatternTransfer::handle
+        );
+        registrar.playToClient(
+                PacketMultiblockFormed.TYPE,
+                PacketMultiblockFormed.STREAM_CODEC,
+                PacketMultiblockFormed::handle
+        );
+        registrar.playToClient(
+                PacketMultiblockBroken.TYPE,
+                PacketMultiblockBroken.STREAM_CODEC,
+                PacketMultiblockBroken::handle
         );
     }
 
@@ -126,10 +145,41 @@ public class Main {
                 );
             }
         }
+
+        // Multiblock ports proxy capabilities from their controller. The port's own ModEntry
+        // has no cap definitions, so register caps here unconditionally for every port BE type.
+        for (MultiblockEntry mb : MultiblockRegistry.ENTRIES.values()) {
+            for (ModEntry port : mb.portEntries()) {
+                if (!port.hasBlockEntity()) continue;
+                event.registerBlockEntity(
+                        Capabilities.ItemHandler.BLOCK,
+                        port.blockEntity().get(),
+                        (be, side) -> be instanceof MultiblockPartBE part ? part.getItemHandler(side) : null
+                );
+                event.registerBlockEntity(
+                        Capabilities.FluidHandler.BLOCK,
+                        port.blockEntity().get(),
+                        (be, side) -> be instanceof MultiblockPartBE part ? part.getFluidHandler(side) : null
+                );
+                event.registerBlockEntity(
+                        Capabilities.EnergyStorage.BLOCK,
+                        port.blockEntity().get(),
+                        (be, side) -> be instanceof MultiblockPartBE part ? part.getEnergyHandler(side) : null
+                );
+            }
+        }
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
 
+    }
+
+    private void onAddReloadListener(AddReloadListenerEvent event) {
+        event.addListener(MultiblocksProvider.getInstance());
+    }
+
+    private void registerClientReloadListeners(RegisterClientReloadListenersEvent event) {
+        event.registerReloadListener(MultiblocksProvider.getInstance());
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
@@ -176,13 +226,6 @@ public class Main {
                 continue;
             }
         }
-    }
-
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
-    @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
-        // Do something when the server starts
-        LOGGER.info("HELLO from server starting");
     }
 
     public static ResourceLocation rl(String path) {

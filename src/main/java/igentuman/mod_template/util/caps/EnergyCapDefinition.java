@@ -23,6 +23,10 @@ public class EnergyCapDefinition {
         return new EnergyCapDefinition(capacity/2, capacity/2, capacity);
     }
 
+    public static EnergyCapDefinition generator(int capacity) {
+        return new EnergyCapDefinition(0, capacity/2, capacity);
+    }
+
     public int getInputRate() {
         return inputRate;
     }

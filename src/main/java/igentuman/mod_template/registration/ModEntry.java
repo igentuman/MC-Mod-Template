@@ -1,5 +1,6 @@
 package igentuman.mod_template.registration;
 
+import igentuman.mod_template.multiblock.MultiblockEntry;
 import igentuman.mod_template.util.SlotsLayout;
 import igentuman.mod_template.util.caps.EnergyCapDefinition;
 import igentuman.mod_template.util.caps.FluidCapDefinition;
@@ -14,6 +15,8 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 
+import java.util.Set;
+
 public record ModEntry (
         String name,
         DeferredBlock<Block> block,
@@ -27,7 +30,8 @@ public record ModEntry (
         ItemCapDefinition itemCap,
         FluidCapDefinition fluidCap,
         EnergyCapDefinition energyCap,
-        SlotsLayout slotsLayout
+        SlotsLayout slotsLayout,
+        Set<MultiblockEntry> linkedMultiblocks
 ) {
 
     public boolean hasBlockEntity() {
@@ -57,4 +61,17 @@ public record ModEntry (
     public DeferredItem<Item> item() {
         return item;
     }
+
+    public void linkMultiblock(MultiblockEntry entry) {
+        this.linkedMultiblocks.add(entry);
+    }
+
+    public Set<MultiblockEntry> linkedMultiblocks() {
+        return this.linkedMultiblocks;
+    }
+
+    public void unlinkMultiblock(MultiblockEntry entry) {
+        this.linkedMultiblocks.remove(entry);
+    }
+
 }

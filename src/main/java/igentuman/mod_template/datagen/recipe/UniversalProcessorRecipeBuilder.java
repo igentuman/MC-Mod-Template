@@ -37,8 +37,12 @@ public class UniversalProcessorRecipeBuilder implements RecipeBuilder {
         this.processorName = processorName;
     }
 
-    public static UniversalProcessorRecipeBuilder processor(String processorName) {
-        return new UniversalProcessorRecipeBuilder(processorName);
+    public static UniversalProcessorRecipeBuilder processor(String name) {
+        return new UniversalProcessorRecipeBuilder(name);
+    }
+
+    public static UniversalProcessorRecipeBuilder controller(String name) {
+        return new UniversalProcessorRecipeBuilder(name);
     }
 
     // --- Item inputs ---
