@@ -110,7 +110,7 @@ dependencies {
     runtimeOnly("cc.tweaked:cc-tweaked-${minecraft_version}-forge:${cct_version}")
     compileOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}")
     compileOnly("mekanism:Mekanism:${minecraft_version}-${mekanism_version}:api")
-    compileOnly("mekanism:Mekanism:${minecraft_version}-${mekanism_version}")// Mekanism
+    implementation("mekanism:Mekanism:${minecraft_version}-${mekanism_version}")// Mekanism
     compileOnly("mekanism:Mekanism:${minecraft_version}-${mekanism_version}:additions")// Mekanism: Additions
     compileOnly("mekanism:Mekanism:${minecraft_version}-${mekanism_version}:generators")// Mekanism: Generators
     compileOnly("mekanism:Mekanism:${minecraft_version}-${mekanism_version}:tools")// Mekanism: Tools

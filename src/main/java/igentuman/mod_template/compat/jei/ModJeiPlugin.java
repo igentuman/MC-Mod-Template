@@ -83,6 +83,7 @@ public class ModJeiPlugin implements IModPlugin {
                     .getAllRecipesFor((net.minecraft.world.item.crafting.RecipeType<UniversalProcessorRecipe>) mcType)
                     .stream()
                     .map(RecipeHolder::value)
+                    .filter(UniversalProcessorRecipe::isComplete)
                     .toList();
 
             registration.addRecipes(jeiType, recipes);

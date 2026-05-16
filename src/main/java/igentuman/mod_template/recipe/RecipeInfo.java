@@ -272,9 +272,11 @@ public class RecipeInfo {
                 ModEntry entry = ModEntries.get(be.name);
                 if (entry != null) {
                     var recipeType = (RecipeType<UniversalProcessorRecipe>) entry.recipeType().get();
-                    level.getRecipeManager().getAllRecipesFor(recipeType).forEach(r ->
-                            allRecipes.put(r.id().toString(), r.value())
-                    );
+                    level.getRecipeManager().getAllRecipesFor(recipeType).forEach(r -> {
+                        if (r.value().isComplete()) {
+                            allRecipes.put(r.id().toString(), r.value());
+                        }
+                    });
                 }
             }
         }

@@ -66,6 +66,7 @@ public class ModEmiPlugin implements EmiPlugin {
                 .getAllRecipesFor(mcType)
                 .stream()
                 .map(RecipeHolder::value)
+                .filter(UniversalProcessorRecipe::isComplete)
                 .toList();
 
             for (int i = 0; i < recipes.size(); i++) {

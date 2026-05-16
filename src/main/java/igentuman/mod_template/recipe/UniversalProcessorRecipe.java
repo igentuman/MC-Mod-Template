@@ -135,4 +135,20 @@ public class UniversalProcessorRecipe implements Recipe<ProcessorRecipeInput> {
     public int getEnergyPerTick() {
         return energyPerTick;
     }
+
+    public boolean isComplete() {
+        for (SizedIngredient si : itemInputs) {
+            if (si.ingredient().isEmpty()) return false;
+        }
+        for (SizedFluidIngredient sfi : fluidInputs) {
+            if (sfi.ingredient().isEmpty()) return false;
+        }
+        for (ItemStack stack : itemOutputs) {
+            if (stack.isEmpty()) return false;
+        }
+        for (FluidStack stack : fluidOutputs) {
+            if (stack.isEmpty()) return false;
+        }
+        return true;
+    }
 }
