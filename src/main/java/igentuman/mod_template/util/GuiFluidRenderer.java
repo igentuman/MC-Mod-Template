@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static igentuman.mod_template.util.TextUtils.__;
+
 /**
  * Utility class for rendering fluids in GUI screens without depending on JEI.
  * Provides methods for getting fluid textures, tint colors, tooltips, and
@@ -216,10 +218,10 @@ public class GuiFluidRenderer {
             List<Component> tooltip = new ArrayList<>();
             if (!fluidStack.isEmpty()) {
                 tooltip.addAll(getTooltip(fluidStack, TooltipFlag.NORMAL));
-                tooltip.add(Component.literal(fluidStack.getAmount() + " / " + capacity + " mB")
+                tooltip.add(Component.literal(TextUtils.formatLiquid(fluidStack.getAmount()) + " / " + TextUtils.formatLiquid(capacity))
                         .withStyle(ChatFormatting.GRAY));
             } else {
-                tooltip.add(Component.translatable("gui.empty").withStyle(ChatFormatting.GRAY));
+                tooltip.add(__("tooltip.fluid.empty").withStyle(ChatFormatting.GRAY));
             }
             guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltip, Optional.empty(), mouseX, mouseY);
         }

@@ -36,6 +36,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.minecraft.world.level.block.Block.UPDATE_ALL;
+import static net.minecraft.world.level.block.Block.UPDATE_CLIENTS;
+
 public class GlobalBlockEntity extends BlockEntity {
 
     public String name;
@@ -80,6 +83,8 @@ public class GlobalBlockEntity extends BlockEntity {
     public int progress = 0;
     @NBTField(syncToClient = true)
     public int maxProgress = 100;
+
+    private boolean wasChanged = false;
 
     public boolean hasInventory() {
         return contentHandler.hasItemCapability();
@@ -241,6 +246,11 @@ public class GlobalBlockEntity extends BlockEntity {
                 return syncFields.size();
             }
         };
+    }
+
+    public void setChanged() {
+        super.setChanged();
+        wasChanged = true;
     }
 
     /**
@@ -482,9 +492,13 @@ public class GlobalBlockEntity extends BlockEntity {
     public void serverTick() {
         contentHandler.tick();
         recipeInfo.tick();
-        if(recipeInfo.changed) {
-            setChanged();
-            getLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        if(recipeInfo.changed || wasChanged) {
+            if(!wasChanged) {
+                setChanged();
+            }
+            assert getLevel() != null;
+            getLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), UPDATE_CLIENTS);
+            wasChanged = false;
         }
     }
 

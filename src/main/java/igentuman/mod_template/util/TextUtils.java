@@ -105,7 +105,10 @@ public class TextUtils
 
 	public static String formatLiquid(int val)
 	{
-		return TextUtils.numberFormat(val/1000)+" B";
+		if (val < 1000) {
+			return val + " mB";
+		}
+		return TextUtils.numberFormat((double) val/1000)+" B";
 	}
 
 	public static String applySpeccialRules(String val)
