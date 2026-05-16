@@ -15,6 +15,8 @@ A universal template for building Minecraft mods on **NeoForge 1.21.1**. The cor
 - **Datagen-ready** - includes providers for block states, item models, loot tables, recipes, tags (block, item, fluid), and language files
 - **Recipe datagen builder** - `UniversalProcessorRecipeBuilder` with fluent API for item/fluid inputs/outputs, process time, and energy cost
 - **Dynamic JEI integration** - automatically registers JEI recipe categories, catalysts, and recipes for every processor entry
+- **EMI integration** - automatically registers EMI recipe categories, workstations, and recipes for every processor entry
+- **AE2 pattern encoder support** - transfer processor recipes from JEI directly into AE2 Pattern Encoding Terminal via `JEI2PatternEncoderTransfer`
 - **KubeJS support** - processor recipe schemas auto-registered for all entries with recipes
 - **Automatic ore world generation** - `addMetalOreMaterial` / `addCrystalOreMaterial` auto-registers configured features, placed features, and biome modifiers; height range and vein counts driven by a live TOML config via `WorldGen`
 
@@ -37,6 +39,8 @@ When you use `ModEntryBuilder`, the following registries are populated automatic
 | **Molten Fluid** | `FLUID_TYPES` / `FLUIDS` | Material has a `FluidDefinition` |
 | **Bucket Item** | `ITEMS` | Material has a fluid |
 | **JEI Category** | JEI plugin | Automatic for every entry with recipes |
+| **EMI Category** | EMI plugin | Automatic for every entry with recipes |
+| **AE2 Pattern Transfer** | JEI transfer handler | Automatic for every entry with recipes (requires AE2) |
 | **Configured Feature** | Datapack / worldgen | Material has `worldgenQty > 0` (default for `metalOre` / `crystalOre`) |
 | **Placed Feature** | Datapack / worldgen | Same |
 | **Biome Modifier** | Datapack / worldgen | Same; targets `IS_OVERWORLD` biomes |
@@ -129,6 +133,10 @@ src/main/java/igentuman/mod_template/
     WorldGen.java                    - TOML config (min/max height, vein size, veins per chunk)
   compat/
     jei/ModJeiPlugin.java            - Dynamic JEI integration
+    jei/ProcessorRecipeCategory.java - JEI recipe category renderer
+    emi/ModEmiPlugin.java            - Dynamic EMI integration
+    emi/ProcessorEmiRecipe.java      - EMI recipe wrapper
+    ae2/JEI2PatternEncoderTransfer.java - AE2 pattern encoder transfer handler
     kubejs/ModKubeJSPlugin.java      - KubeJS recipe schema registration
 ```
 
