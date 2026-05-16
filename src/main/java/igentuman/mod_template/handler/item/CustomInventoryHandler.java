@@ -1,11 +1,16 @@
 package igentuman.mod_template.handler.item;
 
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 public class CustomInventoryHandler extends ItemStackHandler {
 
     public CustomInventoryHandler(int size) {
         super(size);
+    }
+
+    public void voidSlot(int slot) {
+        setStackInSlot(slot, ItemStack.EMPTY);
     }
 
     public static CustomInventoryHandler init(int size, Runnable onChanged) {

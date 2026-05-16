@@ -232,7 +232,7 @@ SilverRecipes.generate(output);
 
 <a name="world-generation"></a>
 
-Ore world generation is **automatic** for materials registered via `metalOre()`. `crystalOre()` does not set worldgen defaults — call `.worldgenConfig(...)` explicitly if you need it. No manual JSON or datapack class edits needed.
+Ore world generation is **automatic** for materials registered via `metalOre()`. `crystalOre()` does not set worldgen defaults - call `.worldgenConfig(...)` explicitly if you need it. No manual JSON or datapack class edits needed.
 
 **Default values** applied by `metalOre()`:
 
@@ -268,13 +268,13 @@ All three values are also **runtime-configurable** via a generated TOML config a
 
 **What the system auto-registers per material** (when `hasWorldgenConfig()` is true):
 
-- `ModConfiguredFeatures` — ore feature targeting both `STONE_ORE_REPLACEABLES` and `DEEPSLATE_ORE_REPLACEABLES` tag blocks
-- `ModPlacedFeatures` — placement with `CountPlacement`, `InSquarePlacement`, `ConfigurableOrePlacement` (reads runtime config for Y range), and `BiomeFilter`
-- `ModBiomeModifiers` — adds the placed feature to all `IS_OVERWORLD` biomes at `UNDERGROUND_ORES` generation step
+- `ModConfiguredFeatures` - ore feature targeting both `STONE_ORE_REPLACEABLES` and `DEEPSLATE_ORE_REPLACEABLES` tag blocks
+- `ModPlacedFeatures` - placement with `CountPlacement`, `InSquarePlacement`, `ConfigurableOrePlacement` (reads runtime config for Y range), and `BiomeFilter`
+- `ModBiomeModifiers` - adds the placed feature to all `IS_OVERWORLD` biomes at `UNDERGROUND_ORES` generation step
 
 Run `./gradlew runData` to emit the datapack JSONs into `src/generated/resources/data/`.
 
-To **disable worldgen** for a material, pass `qty = 0` to `.worldgenConfig()` or call `.noOre()` — worldgen is skipped automatically when the material has no ore block or `worldgenQty == 0`.
+To **disable worldgen** for a material, pass `qty = 0` to `.worldgenConfig()` or call `.noOre()` - worldgen is skipped automatically when the material has no ore block or `worldgenQty == 0`.
 
 ## Accessing Material Items/Blocks at Runtime
 

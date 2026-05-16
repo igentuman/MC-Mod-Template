@@ -271,6 +271,12 @@ public class FluidStackHandler implements IFluidHandler, INBTSerializable<Compou
      * @param action   SIMULATE or EXECUTE
      * @return the fluid that was (or would be) drained
      */
+    public void voidTank(int tank) {
+        validateTankIndex(tank);
+        this.fluids[tank] = FluidStack.EMPTY;
+        onContentsChanged(tank);
+    }
+
     public @NotNull FluidStack drainTank(int tank, int maxDrain, FluidAction action) {
         if (maxDrain <= 0) return FluidStack.EMPTY;
 

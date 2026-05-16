@@ -5,6 +5,7 @@ import igentuman.mod_template.config.Common;
 import igentuman.mod_template.config.Materials;
 import igentuman.mod_template.config.Processors;
 import igentuman.mod_template.config.WorldGen;
+import igentuman.mod_template.compat.cc.CCCompatHandler;
 import igentuman.mod_template.network.PacketAE2PatternTransfer;
 import igentuman.mod_template.network.PacketSideConfigToggle;
 import igentuman.mod_template.registration.ModEntry;
@@ -18,6 +19,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.ModContainer;
@@ -62,6 +64,9 @@ public class Main {
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(this::registerPayloads);
+        if (ModList.get().isLoaded("computercraft")) {
+            CCCompatHandler.register(modEventBus);
+        }
         modContainer.registerConfig(ModConfig.Type.COMMON, Common.SPEC, MODID + "/common.toml");
         modContainer.registerConfig(ModConfig.Type.COMMON, WorldGen.SPEC, MODID + "/worldgen.toml");
         modContainer.registerConfig(ModConfig.Type.COMMON, Materials.SPEC, MODID + "/materials.toml");

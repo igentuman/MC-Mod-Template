@@ -18,6 +18,7 @@ A universal template for building Minecraft mods on **NeoForge 1.21.1**. The cor
 - **EMI integration** - automatically registers EMI recipe categories, workstations, and recipes for every processor entry
 - **AE2 pattern encoder support** - transfer processor recipes from JEI directly into AE2 Pattern Encoding Terminal via `JEI2PatternEncoderTransfer`
 - **KubeJS support** - processor recipe schemas auto-registered for all entries with recipes
+- **ComputerCraft support** - every machine auto-exposed as a CC peripheral with Lua functions for energy, inventory, fluid tanks, progress, and slot/tank management
 - **Automatic ore world generation** - `addMetalOreMaterial` / `addCrystalOreMaterial` auto-registers configured features, placed features, and biome modifiers; height range and vein counts driven by a live TOML config via `WorldGen`
 
 ## Auto-Registered Components
@@ -41,6 +42,7 @@ When you use `ModEntryBuilder`, the following registries are populated automatic
 | **JEI Category** | JEI plugin | Automatic for every entry with recipes |
 | **EMI Category** | EMI plugin | Automatic for every entry with recipes |
 | **AE2 Pattern Transfer** | JEI transfer handler | Automatic for every entry with recipes (requires AE2) |
+| **CC Peripheral** | `PeripheralCapability` | Automatic for every entry with a block entity (requires CC:Tweaked) |
 | **Configured Feature** | Datapack / worldgen | Material has `worldgenQty > 0` (default for `metalOre` / `crystalOre`) |
 | **Placed Feature** | Datapack / worldgen | Same |
 | **Biome Modifier** | Datapack / worldgen | Same; targets `IS_OVERWORLD` biomes |
@@ -75,6 +77,7 @@ With the mod ID in place, define your content inside [`setup/ModEntries.java`](.
 - [Side Configuration System](./docs/side-configuration.md) - per-face push/pull config for machines
 - [JEI Integration](./docs/jei-integration.md) - automatic and custom recipe categories
 - [KubeJS Support](./docs/kubejs-support.md) - script processor recipes with KubeJS
+- [ComputerCraft Support](./docs/cc-support.md) - Lua peripheral API for all machines
 - [Materials Registration](./docs/materials-registration.md#world-generation) - ore world generation via builder
 
 After adding content, run `./gradlew runData` to regenerate assets and data, then `./gradlew runClient` to test in-game.
@@ -138,6 +141,8 @@ src/main/java/igentuman/mod_template/
     emi/ProcessorEmiRecipe.java      - EMI recipe wrapper
     ae2/JEI2PatternEncoderTransfer.java - AE2 pattern encoder transfer handler
     kubejs/ModKubeJSPlugin.java      - KubeJS recipe schema registration
+    cc/CCCompatHandler.java          - Registers PeripheralCapability for every block entity
+    cc/ProcessorPeripheral.java      - IPeripheral wrapping GlobalBlockEntity with Lua API
 ```
 
 ## Documentation
@@ -148,6 +153,7 @@ src/main/java/igentuman/mod_template/
 - [Side Configuration System](./docs/side-configuration.md) - Per-slot, per-face push/pull configuration for machines
 - [JEI Integration](./docs/jei-integration.md) - Automatic and custom JEI recipe category setup
 - [KubeJS Support](./docs/kubejs-support.md) - Script processor recipes with KubeJS
+- [ComputerCraft Support](./docs/cc-support.md) - Lua peripheral API, all functions, and example scripts
 - [Materials Registration](./docs/materials-registration.md) - Register full metal materials including automatic ore world generation
 
 ---

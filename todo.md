@@ -34,8 +34,7 @@
 - Structure validation class
 
 ## CC and OC2 support
-- universal peripheral for CC
-- universal device for OC2
+- ~~universal peripheral for CC~~
 
 
 ## Dynamic Config for Entries

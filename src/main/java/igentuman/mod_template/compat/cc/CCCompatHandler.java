@@ -1,0 +1,26 @@
+package igentuman.mod_template.compat.cc;
+
+import dan200.computercraft.api.peripheral.PeripheralCapability;
+import igentuman.mod_template.block_entity.UniversalProcessorBE;
+import igentuman.mod_template.registration.ModEntry;
+import igentuman.mod_template.setup.ModEntries;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+
+public class CCCompatHandler {
+
+    public static void register(IEventBus modEventBus) {
+        modEventBus.addListener(CCCompatHandler::registerCapabilities);
+    }
+
+    private static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        for (ModEntry entry : ModEntries.ENTRIES.values()) {
+            if (!entry.hasBlockEntity()) continue;
+            event.registerBlockEntity(
+                    PeripheralCapability.get(),
+                    entry.blockEntity().get(),
+                    (be, side) -> be instanceof UniversalProcessorBE gbe ? new ProcessorPeripheral(gbe) : null
+            );
+        }
+    }
+}
