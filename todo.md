@@ -25,7 +25,7 @@
 
 ## JEI/EMI Recipe Categories
 - ~~Autopopulate recipe categories for JEI/EMI~~
-- Only JEI added for now
+- ~~AE2 pattern encoder recipe transfer~~
 
 ## Multiblock Entry Builder
 - Introduce multiblock entry builder
