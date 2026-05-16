@@ -20,6 +20,7 @@ A universal template for building Minecraft mods on **NeoForge 1.21.1**. The cor
 - **KubeJS support** - processor recipe schemas auto-registered for all entries with recipes
 - **ComputerCraft support** - every machine auto-exposed as a CC peripheral with Lua functions for energy, inventory, fluid tanks, progress, and slot/tank management
 - **Automatic ore world generation** - `addMetalOreMaterial` / `addCrystalOreMaterial` auto-registers configured features, placed features, and biome modifiers; height range and vein counts driven by a live TOML config via `WorldGen`
+- **Multiblock system** - declare controller + ports + casing/interior or an authored NBT structure via `MultiblockEntryBuilder`; auto-wires validator, off-thread tick executor, block-change listener, persistence, and client sync
 
 ## Auto-Registered Components
 
@@ -43,6 +44,9 @@ When you use `ModEntryBuilder`, the following registries are populated automatic
 | **EMI Category** | EMI plugin | Automatic for every entry with recipes |
 | **AE2 Pattern Transfer** | JEI transfer handler | Automatic for every entry with recipes (requires AE2) |
 | **CC Peripheral** | `PeripheralCapability` | Automatic for every entry with a block entity (requires CC:Tweaked) |
+| **Multiblock Controller** | `BLOCKS` / `BLOCK_ENTITIES` / `CONTAINERS` | `addMultiblockController(...)` is called |
+| **Multiblock Port** | `BLOCKS` / `BLOCK_ENTITIES` | `addMultiblockPart(...)` is called |
+| **Multiblock Entry** | `MultiblockRegistry` | `MultiblockEntryBuilder.build()` is called |
 | **Configured Feature** | Datapack / worldgen | Material has `worldgenQty > 0` (default for `metalOre` / `crystalOre`) |
 | **Placed Feature** | Datapack / worldgen | Same |
 | **Biome Modifier** | Datapack / worldgen | Same; targets `IS_OVERWORLD` biomes |
@@ -75,6 +79,7 @@ With the mod ID in place, define your content inside [`setup/ModEntries.java`](.
 - [Materials Registration](./docs/materials-registration.md) - full metal material sets (ore, ingot, dust, fluid, …)
 - [Custom Block Entities](./docs/custom-block-entities.md) - custom block/BE/container/screen classes
 - [Side Configuration System](./docs/side-configuration.md) - per-face push/pull config for machines
+- [Multiblocks](./docs/multiblocks.md) - controller + ports + cubic/NBT validator, off-thread tick logic
 - [JEI Integration](./docs/jei-integration.md) - automatic and custom recipe categories
 - [KubeJS Support](./docs/kubejs-support.md) - script processor recipes with KubeJS
 - [ComputerCraft Support](./docs/cc-support.md) - Lua peripheral API for all machines
@@ -103,9 +108,29 @@ src/main/java/igentuman/mod_template/
     Common.java                      - Common setup events
   block/
     UniversalProcessorBlock.java     - Reusable processor block
+    MultiblockControllerBlock.java   - Controller block for a multiblock
+    MultiblockPartBlock.java         - Port/part block for a multiblock
   block_entity/
     GlobalBlockEntity.java           - Base block entity (energy, inventory, fluid, side config, tick)
     UniversalProcessorBE.java        - Thin subclass wiring capabilities from ModEntry config
+    MultiblockControllerBE.java      - Controller BE, bridges block lifecycle to MultiblockHandler
+    MultiblockPartBE.java            - Port BE with controller back-reference
+  multiblock/
+    MultiblockEntry.java             - Registered multiblock (validator/logic/cache suppliers)
+    MultiblockEntryBuilder.java      - Fluent builder
+    MultiblockRegistry.java          - name → entry map
+    MultiblockHandler.java           - Per-level executor, instances, block-change events
+  api/multiblock/
+    IMultiblockValidator.java        - Validator interface
+    IMultiblockLogic.java            - Logic/tick interface (tickServer runs off-thread)
+    IMultiblockCache.java            - Cached state + structure-position set
+    BlockPredicate.java              - (BlockState, BlockEntity) predicate
+  api/impl/
+    CubicMultiblockValidator.java        - Auto-detected hollow-box validator
+    DeterminedMultiblockValidator.java   - NBT structure validator
+    MultiblockCacheImpl.java             - Default cache
+    MultiblockLogicImpl.java             - Default logic (wires port BE controller refs)
+    MultiblockPattern.java               - Optional 3D BlockPredicate grid
   container/
     UniversalProcessorContainer.java - Reusable menu/container
   screen/
@@ -151,6 +176,7 @@ src/main/java/igentuman/mod_template/
 - [Materials Registration](./docs/materials-registration.md) - Register full metal materials (ore, ingot, dust, fluid, etc.)
 - [Custom Block Entities](./docs/custom-block-entities.md) - Add custom Block, BlockEntity, Container, and Screen classes
 - [Side Configuration System](./docs/side-configuration.md) - Per-slot, per-face push/pull configuration for machines
+- [Multiblocks](./docs/multiblocks.md) - Declare controllers, ports, cubic/NBT validators, and off-thread tick logic via `MultiblockEntryBuilder`
 - [JEI Integration](./docs/jei-integration.md) - Automatic and custom JEI recipe category setup
 - [KubeJS Support](./docs/kubejs-support.md) - Script processor recipes with KubeJS
 - [ComputerCraft Support](./docs/cc-support.md) - Lua peripheral API, all functions, and example scripts
@@ -172,7 +198,6 @@ Requires **Java 21**.
 
 ## Planned Features
 
-- **Multiblock entry builder** - define multi-block structure, validation logic, and controller block in one place
 - **Dynamic config for entries** - allow players to disable items/blocks via config, excluding them from creative tabs and JEI
 
 ## License

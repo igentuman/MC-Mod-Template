@@ -28,10 +28,10 @@
 - ~~AE2 pattern encoder recipe transfer~~
 
 ## Multiblock Entry Builder
-- Introduce multiblock entry builder
-- Allow specifying blocks for structure
-- Structure logic class
-- Structure validation class
+- ~~Introduce multiblock entry builder~~
+- ~~Allow specifying blocks for structure~~
+- ~~Structure logic class~~
+- ~~Structure validation class~~
 
 ## CC and OC2 support
 - ~~universal peripheral for CC~~

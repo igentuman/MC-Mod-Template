@@ -56,7 +56,7 @@ public class MultiblocksProvider implements PreparableReloadListener {
 
     private static List<MultiblockStructure> loadMultiblockStructures(ResourceManager resourceManager) {
         List<MultiblockStructure> loadedStructures = new ArrayList<>();
-        loadedStructures.addAll(loadFromLocation(resourceManager, "example_structures"));
+        loadedStructures.addAll(loadFromLocation(resourceManager, "structures"));
         return loadedStructures;
     }
 
@@ -104,17 +104,17 @@ public class MultiblocksProvider implements PreparableReloadListener {
      * JEI/EMI plugin init).
      *
      * @param name structure name without extension; resolves to
-     *             {@code /data/<modid>/example_structures/<name>.nbt}
+     *             {@code /data/<modid>/structures/<name>.nbt}
      * @return loaded structure, or null if file missing or invalid
      */
     public static MultiblockStructure loadStructureFromClasspath(String name) {
-        String path = "/data/" + Main.MODID + "/example_structures/" + name + ".nbt";
+        String path = "/data/" + Main.MODID + "/structures/" + name + ".nbt";
         try (InputStream is = MultiblocksProvider.class.getResourceAsStream(path)) {
             if (is == null) return null;
             CompoundTag nbt = NbtIo.readCompressed(is, NbtAccounter.unlimitedHeap());
             if (!validateStructureBlocks(nbt)) return null;
             ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(Main.MODID,
-                    "example_structures/" + name + ".nbt");
+                    "structures/" + name + ".nbt");
             return new MultiblockStructure(rl, nbt, name + ".nbt");
         } catch (IOException e) {
             System.err.println("Failed to load structure " + name + " from classpath: " + e.getMessage());
