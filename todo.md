@@ -33,7 +33,12 @@
 - Structure logic class
 - Structure validation class
 
+## CC and OC2 support
+- universal peripheral for CC
+- universal device for OC2
+
+
 ## Dynamic Config for Entries
-- Allow players to disable items visibility via config
-- If item/block disabled, exclude from creative tabs
-- If entry with recipes disabled, don't populate JEI/EMI categories
+- ~~Allow players to disable items visibility via config~~
+- ~~If item/block disabled, exclude from creative tabs~~
+- ~~If entry with recipes disabled, don't populate JEI/EMI categories~~

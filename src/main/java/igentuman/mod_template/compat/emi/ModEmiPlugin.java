@@ -7,6 +7,7 @@ import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiStack;
 import igentuman.mod_template.Main;
+import igentuman.mod_template.config.Processors;
 import igentuman.mod_template.recipe.UniversalProcessorRecipe;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
@@ -44,7 +45,7 @@ public class ModEmiPlugin implements EmiPlugin {
     @Override
     public void register(EmiRegistry registry) {
         for (ModEntry entry : ModEntries.ENTRIES.values()) {
-            if (!entry.hasRecipes()) continue;
+            if (!entry.hasRecipes() || !Processors.isEnabled(entry.name())) continue;
             EmiRecipeCategory category = getOrCreateCategory(entry);
             registry.addCategory(category);
             if (entry.hasItem()) {
@@ -55,7 +56,7 @@ public class ModEmiPlugin implements EmiPlugin {
         RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
 
         for (ModEntry entry : ModEntries.ENTRIES.values()) {
-            if (!entry.hasRecipes()) continue;
+            if (!entry.hasRecipes() || !Processors.isEnabled(entry.name())) continue;
             EmiRecipeCategory category = getOrCreateCategory(entry);
 
             @SuppressWarnings("unchecked")

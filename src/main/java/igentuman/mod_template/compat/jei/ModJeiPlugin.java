@@ -2,6 +2,7 @@ package igentuman.mod_template.compat.jei;
 
 import igentuman.mod_template.Main;
 import igentuman.mod_template.compat.ae2.JEI2PatternEncoderTransfer;
+import igentuman.mod_template.config.Processors;
 import igentuman.mod_template.recipe.UniversalProcessorRecipe;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
@@ -43,7 +44,7 @@ public class ModJeiPlugin implements IModPlugin {
         var guiHelper = registration.getJeiHelpers().getGuiHelper();
 
         for (ModEntry entry : ModEntries.ENTRIES.values()) {
-            if (!entry.hasRecipes()) continue;
+            if (!entry.hasRecipes() || !Processors.isEnabled(entry.name())) continue;
             RecipeType<UniversalProcessorRecipe> jeiType = getOrCreateRecipeType(entry);
             registration.addRecipeCategories(new ProcessorRecipeCategory(guiHelper, entry, jeiType));
         }
@@ -52,7 +53,7 @@ public class ModJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         for (ModEntry entry : ModEntries.ENTRIES.values()) {
-            if (!entry.hasRecipes() || !entry.hasItem()) continue;
+            if (!entry.hasRecipes() || !entry.hasItem() || !Processors.isEnabled(entry.name())) continue;
             RecipeType<UniversalProcessorRecipe> jeiType = getOrCreateRecipeType(entry);
             registration.addRecipeCatalyst(new ItemStack(entry.item().get()), jeiType);
         }
@@ -62,7 +63,7 @@ public class ModJeiPlugin implements IModPlugin {
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
         if (!ModList.get().isLoaded("ae2")) return;
         for (ModEntry entry : ModEntries.ENTRIES.values()) {
-            if (!entry.hasRecipes()) continue;
+            if (!entry.hasRecipes() || !Processors.isEnabled(entry.name())) continue;
             RecipeType<UniversalProcessorRecipe> jeiType = getOrCreateRecipeType(entry);
             registration.addRecipeTransferHandler(new JEI2PatternEncoderTransfer(jeiType), jeiType);
         }
@@ -74,7 +75,7 @@ public class ModJeiPlugin implements IModPlugin {
         RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
 
         for (ModEntry entry : ModEntries.ENTRIES.values()) {
-            if (!entry.hasRecipes()) continue;
+            if (!entry.hasRecipes() || !Processors.isEnabled(entry.name())) continue;
 
             RecipeType<UniversalProcessorRecipe> jeiType = getOrCreateRecipeType(entry);
             net.minecraft.world.item.crafting.RecipeType<?> mcType = entry.recipeType().get();

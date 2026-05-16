@@ -2,6 +2,8 @@ package igentuman.mod_template;
 
 import igentuman.mod_template.block_entity.GlobalBlockEntity;
 import igentuman.mod_template.config.Common;
+import igentuman.mod_template.config.Materials;
+import igentuman.mod_template.config.Processors;
 import igentuman.mod_template.config.WorldGen;
 import igentuman.mod_template.network.PacketAE2PatternTransfer;
 import igentuman.mod_template.network.PacketSideConfigToggle;
@@ -62,6 +64,8 @@ public class Main {
         modEventBus.addListener(this::registerPayloads);
         modContainer.registerConfig(ModConfig.Type.COMMON, Common.SPEC, MODID + "/common.toml");
         modContainer.registerConfig(ModConfig.Type.COMMON, WorldGen.SPEC, MODID + "/worldgen.toml");
+        modContainer.registerConfig(ModConfig.Type.COMMON, Materials.SPEC, MODID + "/materials.toml");
+        modContainer.registerConfig(ModConfig.Type.COMMON, Processors.SPEC, MODID + "/processors.toml");
     }
 
     private void registerPayloads(RegisterPayloadHandlersEvent event) {
@@ -125,29 +129,30 @@ public class Main {
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         for (ModEntry entry: ModEntries.ENTRIES.values()) {
-            // Handle material entries (ores, ingots, blocks, etc.)
             if (entry.materialEntry() != null) {
                 var mat = entry.materialEntry();
+                String matName = mat.name;
                 if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) {
-                    if (mat.hasOre()) event.accept(mat.oreItem());
-                    if (mat.hasRawOre()) event.accept(mat.rawOre());
+                    if (mat.hasOre() && Materials.isTypeEnabled(matName, "ore")) event.accept(mat.oreItem());
+                    if (mat.hasRawOre() && Materials.isTypeEnabled(matName, "raw_ore")) event.accept(mat.rawOre());
                 }
                 if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
-                    if (mat.hasBlock()) event.accept(mat.storageItem());
+                    if (mat.hasBlock() && Materials.isTypeEnabled(matName, "block")) event.accept(mat.storageItem());
                 }
                 if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
-                    if (mat.hasIngot()) event.accept(mat.ingot());
-                    if (mat.hasGem()) event.accept(mat.gem());
-                    if (mat.hasDust()) event.accept(mat.dust());
-                    if (mat.hasPlate()) event.accept(mat.plate());
-                    if (mat.hasNugget()) event.accept(mat.nugget());
+                    if (mat.hasIngot() && Materials.isTypeEnabled(matName, "ingot")) event.accept(mat.ingot());
+                    if (mat.hasGem() && Materials.isTypeEnabled(matName, "gem")) event.accept(mat.gem());
+                    if (mat.hasDust() && Materials.isTypeEnabled(matName, "dust")) event.accept(mat.dust());
+                    if (mat.hasPlate() && Materials.isTypeEnabled(matName, "plate")) event.accept(mat.plate());
+                    if (mat.hasNugget() && Materials.isTypeEnabled(matName, "nugget")) event.accept(mat.nugget());
                 }
                 if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
-                    if (mat.hasFluid()) event.accept(mat.bucket());
+                    if (mat.hasFluid() && Materials.isTypeEnabled(matName, "fluid")) event.accept(mat.bucket());
                 }
                 continue;
             }
             if(entry.hasBlockEntity()) {
+                if (!Processors.isEnabled(entry.name())) continue;
                 if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
                     event.accept(entry.item());
                 }
