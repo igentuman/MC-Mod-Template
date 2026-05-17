@@ -129,3 +129,9 @@ Tool and armor entries are picked up automatically by:
 - `ModLanguageProvider` - generates English display names from the entry name
 
 No manual datagen wiring needed.
+
+
+All you need to place textures at:
+- `resources/assets/modtemplate/textures/item/armor`
+- `resources/assets/modtemplate/textures/item/tools`
+- `resources/assets/modtemplate/textures/models/armor`
