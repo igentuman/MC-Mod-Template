@@ -1,5 +1,36 @@
 # Changelog
 
+## v1.0.1 - NeoForge 1.21.1
+
+### Multiblock API
+- `MultiblockEntryBuilder` - fluent registration for controller + ports, casing/interior block predicates, or NBT structure templates
+- `MultiblockRegistry` holds all multiblock entries; capabilities auto-wired in `Main.registerCapabilities`
+- `IMultiblockValidator` / `IMultiblockLogic` / `IMultiblockCache` interfaces with default impls (`CubicMultiblockValidator`, `DeterminedMultiblockValidator`, `MultiblockLogicImpl`, `MultiblockCacheImpl`)
+- `MultiblockPattern` + `BlockPredicate` for declarative shape definitions
+- `MultiblockStructure` + `.nbt` template loading for arbitrary structures
+- `MultiblockControllerBlock` / `MultiblockPartBlock` with form/break lifecycle and port linking
+- `MultiblockControllerBE` / `MultiblockPartBE` - controller aggregates port I/O; ports forward capabilities to controller
+- `MultiblockControllerContainer` / `MultiblockPortContainer` + screens with structure preview
+- `StructurePreviewRenderer` - in-world ghost rendering of unformed structure
+- `PacketMultiblockFormed` / `PacketMultiblockBroken` network sync
+- `multiblocks` TOML config gates entries
+
+### Recipe Integration
+- JEI: `MultiblockExampleCategory` + `MultiblockStructureRecipe` show multiblock assembly
+- EMI: `MultiblockExampleEmiRecipe` mirrors JEI integration
+- KubeJS: multiblock recipe schema (`foo_controller/dirt_silver_to_water` example)
+- `FooMultiblockRecipes` datagen example
+
+### ComputerCraft
+- `ControllerPerihperal` - peripheral exposing multiblock controller state, I/O, recipe progress to CC programs
+
+### Example Content
+- `foo_controller` + `foo_port` blocks demonstrating full multiblock setup
+- `foo_multiblock.nbt` example structure
+
+### Docs
+- `docs/multiblocks.md` - full multiblock registration guide
+
 ## v1.0.0 - NeoForge 1.21.1
 
 ### Core Framework
