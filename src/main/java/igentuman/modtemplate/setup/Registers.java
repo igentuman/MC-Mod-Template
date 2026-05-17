@@ -3,6 +3,7 @@ package igentuman.modtemplate.setup;
 import igentuman.modtemplate.setup.level.ConfigurableOrePlacement;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -27,6 +28,7 @@ public class Registers {
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(Registries.RECIPE_SERIALIZER, MODID);
     public static final DeferredRegister<FluidType> FLUID_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.FLUID_TYPES, MODID);
     public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(Registries.FLUID, MODID);
+    public static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS = DeferredRegister.create(Registries.ARMOR_MATERIAL, MODID);
     public static final DeferredRegister<PlacementModifierType<?>> PLACEMENT_MODIFIER_TYPES =
         DeferredRegister.create(Registries.PLACEMENT_MODIFIER_TYPE, MODID);
 
@@ -45,6 +47,7 @@ public class Registers {
         RECIPE_SERIALIZERS.register(modEventBus);
         FLUID_TYPES.register(modEventBus);
         FLUIDS.register(modEventBus);
+        ARMOR_MATERIALS.register(modEventBus);
         PLACEMENT_MODIFIER_TYPES.register(modEventBus);
     }
 }

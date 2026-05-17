@@ -19,12 +19,24 @@ public class ArmorSetEntry {
     }
 
     public static ArmorSetEntry build(String name, Holder<ArmorMaterial> material) {
+        return build(name, material, 15);
+    }
+
+    public static ArmorSetEntry build(String name, ArmorMaterialEntry material) {
+        return build(name, material.holder(), material.durabilityMultiplier());
+    }
+
+    public static ArmorSetEntry build(String name, Holder<ArmorMaterial> material, int durabilityMultiplier) {
         ArmorSetEntry e = new ArmorSetEntry(name);
-        e.helmet     = ITEMS.register(name + "_helmet",     () -> new ArmorItem(material, ArmorItem.Type.HELMET,     new Item.Properties()));
-        e.chestplate = ITEMS.register(name + "_chestplate", () -> new ArmorItem(material, ArmorItem.Type.CHESTPLATE, new Item.Properties()));
-        e.leggings   = ITEMS.register(name + "_leggings",   () -> new ArmorItem(material, ArmorItem.Type.LEGGINGS,   new Item.Properties()));
-        e.boots      = ITEMS.register(name + "_boots",      () -> new ArmorItem(material, ArmorItem.Type.BOOTS,      new Item.Properties()));
+        e.helmet     = ITEMS.register(name + "_helmet",     () -> new ArmorItem(material, ArmorItem.Type.HELMET,     props(ArmorItem.Type.HELMET, durabilityMultiplier)));
+        e.chestplate = ITEMS.register(name + "_chestplate", () -> new ArmorItem(material, ArmorItem.Type.CHESTPLATE, props(ArmorItem.Type.CHESTPLATE, durabilityMultiplier)));
+        e.leggings   = ITEMS.register(name + "_leggings",   () -> new ArmorItem(material, ArmorItem.Type.LEGGINGS,   props(ArmorItem.Type.LEGGINGS, durabilityMultiplier)));
+        e.boots      = ITEMS.register(name + "_boots",      () -> new ArmorItem(material, ArmorItem.Type.BOOTS,      props(ArmorItem.Type.BOOTS, durabilityMultiplier)));
         return e;
+    }
+
+    private static Item.Properties props(ArmorItem.Type type, int durabilityMultiplier) {
+        return new Item.Properties().durability(type.getDurability(durabilityMultiplier));
     }
 
     public DeferredItem<Item> helmet()     { return helmet; }

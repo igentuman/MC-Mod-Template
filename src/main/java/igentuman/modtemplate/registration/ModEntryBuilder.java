@@ -65,6 +65,8 @@ public class ModEntryBuilder {
     private Tier toolTier;
     private String toolItemPrefix;
     private Holder<ArmorMaterial> armorMaterialHolder;
+    private ArmorMaterialEntry armorMaterialEntry;
+    private int armorDurabilityMultiplier = 15;
     private String armorItemPrefix;
     private DeferredHolder<BlockEntityType<?>, BlockEntityType<?>> registeredBe;
 
@@ -101,6 +103,19 @@ public class ModEntryBuilder {
     public static ModEntryBuilder addArmorSet(String name, Holder<ArmorMaterial> material) {
         ModEntryBuilder b = add(name + "_armor");
         b.armorMaterialHolder = material;
+        b.armorItemPrefix = name;
+        return b;
+    }
+
+    public static ModEntryBuilder addArmorSet(String name, Holder<ArmorMaterial> material, int durabilityMultiplier) {
+        ModEntryBuilder b = addArmorSet(name, material);
+        b.armorDurabilityMultiplier = durabilityMultiplier;
+        return b;
+    }
+
+    public static ModEntryBuilder addArmorSet(String name, ArmorMaterialEntry material) {
+        ModEntryBuilder b = add(name + "_armor");
+        b.armorMaterialEntry = material;
         b.armorItemPrefix = name;
         return b;
     }
@@ -403,8 +418,11 @@ public class ModEntryBuilder {
         }
 
         ArmorSetEntry armorSetEntry = null;
-        if (armorMaterialHolder != null) {
-            armorSetEntry = ArmorSetEntry.build(armorItemPrefix != null ? armorItemPrefix : name, armorMaterialHolder);
+        String armorName = armorItemPrefix != null ? armorItemPrefix : name;
+        if (armorMaterialEntry != null) {
+            armorSetEntry = ArmorSetEntry.build(armorName, armorMaterialEntry);
+        } else if (armorMaterialHolder != null) {
+            armorSetEntry = ArmorSetEntry.build(armorName, armorMaterialHolder, armorDurabilityMultiplier);
         }
 
         ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer, material, itemCapDefinition, fluidCapDefinition, energy, slotsLayout, toolSetEntry, armorSetEntry, Set.of());
