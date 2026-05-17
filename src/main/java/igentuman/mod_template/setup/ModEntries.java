@@ -1,5 +1,7 @@
 package igentuman.mod_template.setup;
 
+import igentuman.mod_template.api.impl.DeterminedMultiblockValidator;
+import igentuman.mod_template.api.multiblock.BlockPredicate;
 import igentuman.mod_template.multiblock.MultiblockEntry;
 import igentuman.mod_template.multiblock.MultiblockEntryBuilder;
 import igentuman.mod_template.multiblock.MultiblockRegistry;
@@ -40,9 +42,9 @@ public class ModEntries {
 
     public static final MultiblockEntry FOO_MULTIBLOCK = MultiblockEntryBuilder.name("foo_multiblock")
             .controller(FOO_CONTROLLER).ports(FOO_PORT)
-            .casing(() -> SILVER.materialEntry().storageBlock().get(), () -> IRON_BLOCK)
-            .sizeRange(3, 5, 3, 5, 3, 5)
-            .interior(() -> DIRT)
+            .validator(() -> new DeterminedMultiblockValidator(
+                    "foo_multiblock",
+                    BlockPredicate.of(FOO_CONTROLLER.block().get())))
             .build();
 
     public static void init() {}

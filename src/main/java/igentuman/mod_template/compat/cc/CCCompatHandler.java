@@ -1,6 +1,8 @@
 package igentuman.mod_template.compat.cc;
 
+import dan200.computercraft.api.peripheral.IPeripheral;
 import dan200.computercraft.api.peripheral.PeripheralCapability;
+import igentuman.mod_template.block_entity.MultiblockControllerBE;
 import igentuman.mod_template.block_entity.UniversalProcessorBE;
 import igentuman.mod_template.registration.ModEntry;
 import igentuman.mod_template.setup.ModEntries;
@@ -19,7 +21,11 @@ public class CCCompatHandler {
             event.registerBlockEntity(
                     PeripheralCapability.get(),
                     entry.blockEntity().get(),
-                    (be, side) -> be instanceof UniversalProcessorBE gbe ? new ProcessorPeripheral(gbe) : null
+                    (be, side) -> {
+                        if (be instanceof MultiblockControllerBE controller) return new ControllerPerihperal(controller);
+                        if (be instanceof UniversalProcessorBE processor) return new ProcessorPeripheral(processor);
+                        return (IPeripheral) null;
+                    }
             );
         }
     }
