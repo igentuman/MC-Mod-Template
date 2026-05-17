@@ -1,7 +1,9 @@
 package igentuman.modtemplate.datagen.tag;
 
+import igentuman.modtemplate.registration.ArmorSetEntry;
 import igentuman.modtemplate.registration.MaterialEntry;
 import igentuman.modtemplate.registration.ModEntry;
+import igentuman.modtemplate.registration.ToolSetEntry;
 import igentuman.modtemplate.setup.ModEntries;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
@@ -26,6 +28,20 @@ public class ModItemTagProvider extends ItemTagsProvider {
     @Override
     public void addTags(HolderLookup.Provider provider) {
         for (ModEntry entry : ModEntries.ENTRIES.values()) {
+            if (entry.toolSetEntry() instanceof ToolSetEntry toolSet) {
+                tag(ItemTags.SWORDS).add(toolSet.sword().get());
+                tag(ItemTags.PICKAXES).add(toolSet.pickaxe().get());
+                tag(ItemTags.AXES).add(toolSet.axe().get());
+                tag(ItemTags.SHOVELS).add(toolSet.shovel().get());
+                tag(ItemTags.HOES).add(toolSet.hoe().get());
+            }
+            if (entry.armorSetEntry() instanceof ArmorSetEntry armorSet) {
+                tag(ItemTags.HEAD_ARMOR).add(armorSet.helmet().get());
+                tag(ItemTags.CHEST_ARMOR).add(armorSet.chestplate().get());
+                tag(ItemTags.LEG_ARMOR).add(armorSet.leggings().get());
+                tag(ItemTags.FOOT_ARMOR).add(armorSet.boots().get());
+            }
+
             MaterialEntry material = entry.materialEntry();
             if (material == null) continue;
 

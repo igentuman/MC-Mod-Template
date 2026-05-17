@@ -1,6 +1,8 @@
 package igentuman.modtemplate.datagen;
 
+import igentuman.modtemplate.registration.ArmorSetEntry;
 import igentuman.modtemplate.registration.MaterialEntry;
+import igentuman.modtemplate.registration.ToolSetEntry;
 import igentuman.modtemplate.setup.ModEntries;
 import net.minecraft.data.DataGenerator;
 import net.neoforged.neoforge.common.data.LanguageProvider;
@@ -27,6 +29,21 @@ public class ModLanguageProvider  extends LanguageProvider {
             }
             if(ModEntries.get(name).hasItem()) {
                 add(ModEntries.get(name).item().get(), convertToName(name));
+                continue;
+            }
+            if (ModEntries.get(name).toolSetEntry() instanceof ToolSetEntry toolSet) {
+                add(toolSet.sword().get(),   convertToName(toolSet.name + "_sword"));
+                add(toolSet.pickaxe().get(), convertToName(toolSet.name + "_pickaxe"));
+                add(toolSet.axe().get(),     convertToName(toolSet.name + "_axe"));
+                add(toolSet.shovel().get(),  convertToName(toolSet.name + "_shovel"));
+                add(toolSet.hoe().get(),     convertToName(toolSet.name + "_hoe"));
+                continue;
+            }
+            if (ModEntries.get(name).armorSetEntry() instanceof ArmorSetEntry armorSet) {
+                add(armorSet.helmet().get(),     convertToName(armorSet.name + "_helmet"));
+                add(armorSet.chestplate().get(), convertToName(armorSet.name + "_chestplate"));
+                add(armorSet.leggings().get(),   convertToName(armorSet.name + "_leggings"));
+                add(armorSet.boots().get(),      convertToName(armorSet.name + "_boots"));
                 continue;
             }
             if (ModEntries.get(name).materialEntry() instanceof MaterialEntry materialEntry) {

@@ -18,6 +18,10 @@ import igentuman.modtemplate.recipe.UniversalProcessorRecipeSerializer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.core.Holder;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
@@ -58,6 +62,10 @@ public class ModEntryBuilder {
     private Supplier<RecipeSerializer<?>> recipeSerializerSupplier;
     public MaterialEntry material;
     private SlotsLayout slotsLayout;
+    private Tier toolTier;
+    private String toolItemPrefix;
+    private Holder<ArmorMaterial> armorMaterialHolder;
+    private String armorItemPrefix;
     private DeferredHolder<BlockEntityType<?>, BlockEntityType<?>> registeredBe;
 
     private ModEntryBuilder(String name) {
@@ -81,6 +89,20 @@ public class ModEntryBuilder {
                 .material(color);
         materialEntry.material.metalOre();
         return materialEntry;
+    }
+
+    public static ModEntryBuilder addToolSet(String name, Tier tier) {
+        ModEntryBuilder b = add(name + "_tools");
+        b.toolTier = tier;
+        b.toolItemPrefix = name;
+        return b;
+    }
+
+    public static ModEntryBuilder addArmorSet(String name, Holder<ArmorMaterial> material) {
+        ModEntryBuilder b = add(name + "_armor");
+        b.armorMaterialHolder = material;
+        b.armorItemPrefix = name;
+        return b;
     }
 
     public ModEntryBuilder material(int color) {
@@ -231,7 +253,7 @@ public class ModEntryBuilder {
                         CONTAINERS.register(name, () -> IMenuTypeExtension.create(
                                 (IContainerFactory<MultiblockPortContainer>) MultiblockPortContainer::new));
 
-        ModEntry entry = new ModEntry(name, block, item, menu, beHolder[0], false, null, null, null, null, null, null, null, Set.of());
+        ModEntry entry = new ModEntry(name, block, item, menu, beHolder[0], false, null, null, null, null, null, null, null, null, null, Set.of());
         ENTRIES.put(name, entry);
         return entry;
     }
@@ -375,7 +397,17 @@ public class ModEntryBuilder {
             material.build();
         }
 
-        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer, material, itemCapDefinition, fluidCapDefinition, energy, slotsLayout, Set.of());
+        ToolSetEntry toolSetEntry = null;
+        if (toolTier != null) {
+            toolSetEntry = ToolSetEntry.build(toolItemPrefix != null ? toolItemPrefix : name, toolTier);
+        }
+
+        ArmorSetEntry armorSetEntry = null;
+        if (armorMaterialHolder != null) {
+            armorSetEntry = ArmorSetEntry.build(armorItemPrefix != null ? armorItemPrefix : name, armorMaterialHolder);
+        }
+
+        ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer, material, itemCapDefinition, fluidCapDefinition, energy, slotsLayout, toolSetEntry, armorSetEntry, Set.of());
         ENTRIES.put(name, entry);
         return entry;
 

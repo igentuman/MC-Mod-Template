@@ -6,6 +6,8 @@ import igentuman.modtemplate.multiblock.MultiblockEntry;
 import igentuman.modtemplate.multiblock.MultiblockEntryBuilder;
 import igentuman.modtemplate.registration.ModEntry;
 import igentuman.modtemplate.util.SlotsLayout;
+import net.minecraft.world.item.ArmorMaterials;
+import net.minecraft.world.item.Tiers;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 
@@ -25,6 +27,10 @@ public class ModEntries {
             .fluidCap(2,2, 0)
             .itemCap(1,0)
             .build();
+
+    public static final ModEntry SILVER_TOOLS = addToolSet("silver", Tiers.DIAMOND).build();
+
+    public static final ModEntry SILVER_ARMOR = addArmorSet("silver", ArmorMaterials.IRON).build();
 
     public static final ModEntry SILVER = addMetalOreMaterial("silver", Color.LIGHT_GRAY.getRGB()).build();
 

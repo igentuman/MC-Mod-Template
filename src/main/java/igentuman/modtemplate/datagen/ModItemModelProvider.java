@@ -1,6 +1,8 @@
 package igentuman.modtemplate.datagen;
 
+import igentuman.modtemplate.registration.ArmorSetEntry;
 import igentuman.modtemplate.registration.MaterialEntry;
+import igentuman.modtemplate.registration.ToolSetEntry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -28,6 +30,19 @@ public class ModItemModelProvider  extends ItemModelProvider {
                 withExistingParent(entry.name(), modLoc("block/" + entry.name()));
             } else if (entry.hasItem()) {
                 simpleItem(entry.item(), entry.name());
+            }
+            if (entry.toolSetEntry() instanceof ToolSetEntry toolSet) {
+                buildItem(toolSet.sword(),   "tools/" + toolSet.name + "_sword",   "item/handheld");
+                buildItem(toolSet.pickaxe(), "tools/" + toolSet.name + "_pickaxe", "item/handheld");
+                buildItem(toolSet.axe(),     "tools/" + toolSet.name + "_axe",     "item/handheld");
+                buildItem(toolSet.shovel(),  "tools/" + toolSet.name + "_shovel",  "item/handheld");
+                buildItem(toolSet.hoe(),     "tools/" + toolSet.name + "_hoe",     "item/handheld");
+            }
+            if (entry.armorSetEntry() instanceof ArmorSetEntry armorSet) {
+                buildItem(armorSet.helmet(),     "armor/" + armorSet.name + "_helmet",     "item/generated");
+                buildItem(armorSet.chestplate(), "armor/" + armorSet.name + "_chestplate", "item/generated");
+                buildItem(armorSet.leggings(),   "armor/" + armorSet.name + "_leggings",   "item/generated");
+                buildItem(armorSet.boots(),      "armor/" + armorSet.name + "_boots",      "item/generated");
             }
             if (entry.materialEntry() instanceof MaterialEntry materialEntry) {
                 if (materialEntry.hasBlock()) {

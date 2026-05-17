@@ -31,6 +31,8 @@ public record ModEntry (
         FluidCapDefinition fluidCap,
         EnergyCapDefinition energyCap,
         SlotsLayout slotsLayout,
+        ToolSetEntry toolSetEntry,
+        ArmorSetEntry armorSetEntry,
         Set<MultiblockEntry> linkedMultiblocks
 ) {
 
@@ -52,6 +54,14 @@ public record ModEntry (
 
     public boolean hasItem() {
         return item != null;
+    }
+
+    public boolean hasToolSet() {
+        return toolSetEntry != null;
+    }
+
+    public boolean hasArmorSet() {
+        return armorSetEntry != null;
     }
 
     public DeferredBlock<Block> block() {

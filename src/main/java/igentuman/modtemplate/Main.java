@@ -219,6 +219,29 @@ public class Main {
                 }
                 continue;
             }
+            if (entry.hasToolSet()) {
+                var tools = entry.toolSetEntry();
+                if (event.getTabKey() == CreativeModeTabs.COMBAT) {
+                    event.accept(tools.sword());
+                }
+                if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
+                    event.accept(tools.pickaxe());
+                    event.accept(tools.axe());
+                    event.accept(tools.shovel());
+                    event.accept(tools.hoe());
+                }
+                continue;
+            }
+            if (entry.hasArmorSet()) {
+                var armor = entry.armorSetEntry();
+                if (event.getTabKey() == CreativeModeTabs.COMBAT) {
+                    event.accept(armor.helmet());
+                    event.accept(armor.chestplate());
+                    event.accept(armor.leggings());
+                    event.accept(armor.boots());
+                }
+                continue;
+            }
             if(entry.hasItem()) {
                 if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
                     event.accept(entry.item());
