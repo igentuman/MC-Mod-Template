@@ -41,6 +41,7 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import org.apache.commons.lang3.function.TriFunction;
 
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.function.Function;
 
@@ -68,6 +69,15 @@ public class ModEntryBuilder {
     private ArmorMaterialEntry armorMaterialEntry;
     private int armorDurabilityMultiplier = 15;
     private String armorItemPrefix;
+    private BiFunction<Tier, Item.Properties, ? extends Item> swordFactory;
+    private BiFunction<Tier, Item.Properties, ? extends Item> pickaxeFactory;
+    private BiFunction<Tier, Item.Properties, ? extends Item> axeFactory;
+    private BiFunction<Tier, Item.Properties, ? extends Item> shovelFactory;
+    private BiFunction<Tier, Item.Properties, ? extends Item> hoeFactory;
+    private TriFunction<Holder<ArmorMaterial>, ArmorItem.Type, Item.Properties, ? extends Item> helmetFactory;
+    private TriFunction<Holder<ArmorMaterial>, ArmorItem.Type, Item.Properties, ? extends Item> chestplateFactory;
+    private TriFunction<Holder<ArmorMaterial>, ArmorItem.Type, Item.Properties, ? extends Item> leggingsFactory;
+    private TriFunction<Holder<ArmorMaterial>, ArmorItem.Type, Item.Properties, ? extends Item> bootsFactory;
     private DeferredHolder<BlockEntityType<?>, BlockEntityType<?>> registeredBe;
 
     private ModEntryBuilder(String name) {
@@ -118,6 +128,34 @@ public class ModEntryBuilder {
         b.armorMaterialEntry = material;
         b.armorItemPrefix = name;
         return b;
+    }
+
+    public ModEntryBuilder sword(BiFunction<Tier, Item.Properties, ? extends Item> factory)   { this.swordFactory = factory;   return this; }
+    public ModEntryBuilder pickaxe(BiFunction<Tier, Item.Properties, ? extends Item> factory) { this.pickaxeFactory = factory; return this; }
+    public ModEntryBuilder axe(BiFunction<Tier, Item.Properties, ? extends Item> factory)     { this.axeFactory = factory;     return this; }
+    public ModEntryBuilder shovel(BiFunction<Tier, Item.Properties, ? extends Item> factory)  { this.shovelFactory = factory;  return this; }
+    public ModEntryBuilder hoe(BiFunction<Tier, Item.Properties, ? extends Item> factory)     { this.hoeFactory = factory;     return this; }
+
+    public ModEntryBuilder toolFactory(BiFunction<Tier, Item.Properties, ? extends Item> factory) {
+        this.swordFactory = factory;
+        this.pickaxeFactory = factory;
+        this.axeFactory = factory;
+        this.shovelFactory = factory;
+        this.hoeFactory = factory;
+        return this;
+    }
+
+    public ModEntryBuilder helmet(TriFunction<Holder<ArmorMaterial>, ArmorItem.Type, Item.Properties, ? extends Item> factory)     { this.helmetFactory = factory;     return this; }
+    public ModEntryBuilder chestplate(TriFunction<Holder<ArmorMaterial>, ArmorItem.Type, Item.Properties, ? extends Item> factory) { this.chestplateFactory = factory; return this; }
+    public ModEntryBuilder leggings(TriFunction<Holder<ArmorMaterial>, ArmorItem.Type, Item.Properties, ? extends Item> factory)   { this.leggingsFactory = factory;   return this; }
+    public ModEntryBuilder boots(TriFunction<Holder<ArmorMaterial>, ArmorItem.Type, Item.Properties, ? extends Item> factory)      { this.bootsFactory = factory;      return this; }
+
+    public ModEntryBuilder armorFactory(TriFunction<Holder<ArmorMaterial>, ArmorItem.Type, Item.Properties, ? extends Item> factory) {
+        this.helmetFactory = factory;
+        this.chestplateFactory = factory;
+        this.leggingsFactory = factory;
+        this.bootsFactory = factory;
+        return this;
     }
 
     public ModEntryBuilder material(int color) {
@@ -414,15 +452,18 @@ public class ModEntryBuilder {
 
         ToolSetEntry toolSetEntry = null;
         if (toolTier != null) {
-            toolSetEntry = ToolSetEntry.build(toolItemPrefix != null ? toolItemPrefix : name, toolTier);
+            toolSetEntry = ToolSetEntry.build(toolItemPrefix != null ? toolItemPrefix : name, toolTier,
+                    swordFactory, pickaxeFactory, axeFactory, shovelFactory, hoeFactory);
         }
 
         ArmorSetEntry armorSetEntry = null;
         String armorName = armorItemPrefix != null ? armorItemPrefix : name;
         if (armorMaterialEntry != null) {
-            armorSetEntry = ArmorSetEntry.build(armorName, armorMaterialEntry);
+            armorSetEntry = ArmorSetEntry.build(armorName, armorMaterialEntry,
+                    helmetFactory, chestplateFactory, leggingsFactory, bootsFactory);
         } else if (armorMaterialHolder != null) {
-            armorSetEntry = ArmorSetEntry.build(armorName, armorMaterialHolder, armorDurabilityMultiplier);
+            armorSetEntry = ArmorSetEntry.build(armorName, armorMaterialHolder, armorDurabilityMultiplier,
+                    helmetFactory, chestplateFactory, leggingsFactory, bootsFactory);
         }
 
         ModEntry entry = new ModEntry(name, block, item, menu, blockEntity, recipeTypeSupplier != null, recipeType, recipeSerializer, material, itemCapDefinition, fluidCapDefinition, energy, slotsLayout, toolSetEntry, armorSetEntry, Set.of());

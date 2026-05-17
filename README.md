@@ -21,6 +21,7 @@ A universal template for building Minecraft mods on **NeoForge 1.21.1**. The cor
 - **ComputerCraft support** - every machine auto-exposed as a CC peripheral with Lua functions for energy, inventory, fluid tanks, progress, and slot/tank management
 - **Automatic ore world generation** - `addMetalOreMaterial` / `addCrystalOreMaterial` auto-registers configured features, placed features, and biome modifiers; height range and vein counts driven by a live TOML config via `WorldGen`
 - **Multiblock system** - declare controller + ports + casing/interior or an authored NBT structure via `MultiblockEntryBuilder`; auto-wires validator, off-thread tick executor, block-change listener, persistence, and client sync
+- **Tool & armor sets** - register a full tool set (`addToolSet`) or armor set (`addArmorSet`) in one call, with per-slot factory overrides for custom item classes
 
 ## Auto-Registered Components
 
@@ -47,6 +48,9 @@ When you use `ModEntryBuilder`, the following registries are populated automatic
 | **Multiblock Controller** | `BLOCKS` / `BLOCK_ENTITIES` / `CONTAINERS` | `addMultiblockController(...)` is called |
 | **Multiblock Port** | `BLOCKS` / `BLOCK_ENTITIES` | `addMultiblockPart(...)` is called |
 | **Multiblock Entry** | `MultiblockRegistry` | `MultiblockEntryBuilder.build()` is called |
+| **Tool Set** (sword, pickaxe, axe, shovel, hoe) | `ITEMS` | `addToolSet(name, tier)` is called |
+| **Armor Set** (helmet, chestplate, leggings, boots) | `ITEMS` | `addArmorSet(name, material)` is called |
+| **Armor Material** | `ARMOR_MATERIALS` | `ArmorMaterialEntry.builder(...).build()` |
 | **Configured Feature** | Datapack / worldgen | Material has `worldgenQty > 0` (default for `metalOre` / `crystalOre`) |
 | **Placed Feature** | Datapack / worldgen | Same |
 | **Biome Modifier** | Datapack / worldgen | Same; targets `IS_OVERWORLD` biomes |
@@ -77,6 +81,7 @@ With the mod ID in place, define your content inside [`setup/ModEntries.java`](.
 
 - [Processors & Items Registration](./docs/processors-registration.md) - machines, simple items, plain blocks
 - [Materials Registration](./docs/materials-registration.md) - full metal material sets (ore, ingot, dust, fluid, …)
+- [Tools & Armor Registration](./docs/tools-armor-registration.md) - full tool / armor sets with per-slot custom item classes
 - [Custom Block Entities](./docs/custom-block-entities.md) - custom block/BE/container/screen classes
 - [Side Configuration System](./docs/side-configuration.md) - per-face push/pull config for machines
 - [Multiblocks](./docs/multiblocks.md) - controller + ports + cubic/NBT validator, off-thread tick logic
@@ -174,6 +179,7 @@ src/main/java/igentuman/modtemplate/
 
 - [Processors & Items Registration](./docs/processors-registration.md) - Register machines, simple items, and plain blocks using `ModEntryBuilder`
 - [Materials Registration](./docs/materials-registration.md) - Register full metal materials (ore, ingot, dust, fluid, etc.)
+- [Tools & Armor Registration](./docs/tools-armor-registration.md) - Register full tool / armor sets, optionally with per-slot custom item classes
 - [Custom Block Entities](./docs/custom-block-entities.md) - Add custom Block, BlockEntity, Container, and Screen classes
 - [Side Configuration System](./docs/side-configuration.md) - Per-slot, per-face push/pull configuration for machines
 - [Multiblocks](./docs/multiblocks.md) - Declare controllers, ports, cubic/NBT validators, and off-thread tick logic via `MultiblockEntryBuilder`
