@@ -397,7 +397,7 @@ public class MyCustomPeripheral extends ProcessorPeripheral {
 
 Then register it the same way as Step 2, casting `be` to `MyCustomBE` inside the lambda:
 
-`java/igentuman/mod_template/compat/cc/CCCompatHandler.java`
+`java/igentuman/modtemplate/compat/cc/CCCompatHandler.java`
 ```java
 event.registerBlockEntity(
         PeripheralCapability.get(),

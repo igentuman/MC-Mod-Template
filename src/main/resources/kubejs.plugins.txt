@@ -1,1 +1,1 @@
-igentuman.mod_template.compat.kubejs.ModKubeJSPlugin modtemplate
+igentuman.modtemplate.compat.kubejs.ModKubeJSPlugin modtemplate

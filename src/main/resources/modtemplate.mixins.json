@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "igentuman.mod_template.mixin",
+  "package": "igentuman.modtemplate.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [],
   "injectors": {

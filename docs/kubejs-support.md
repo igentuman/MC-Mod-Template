@@ -131,7 +131,7 @@ src/main/resources/kubejs.plugins.txt
 
 Content:
 ```
-igentuman.mod_template.compat.kubejs.ModKubeJSPlugin
+igentuman.modtemplate.compat.kubejs.ModKubeJSPlugin
 ```
 
 If KubeJS is absent from the mod list, this file is ignored and no errors occur.

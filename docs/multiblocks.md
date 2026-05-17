@@ -160,7 +160,7 @@ Controller broken
 
 ## Structure Preview
 
-`igentuman.mod_template.util.StructurePreviewRenderer` can render an example structure ghost overlay in-world (for "how do I build this" UX). Combine with `MultiblockEntry.getExampleStructure()` which resolves either a loaded structure or one at `data/<modid>/example_structures/<name>.nbt`.
+`igentuman.modtemplate.util.StructurePreviewRenderer` can render an example structure ghost overlay in-world (for "how do I build this" UX). Combine with `MultiblockEntry.getExampleStructure()` which resolves either a loaded structure or one at `data/<modid>/example_structures/<name>.nbt`.
 
 ## Files
 

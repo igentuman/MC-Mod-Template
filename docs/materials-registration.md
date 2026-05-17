@@ -135,7 +135,7 @@ Available removal methods:
 ### 1. Add the entry in `ModEntries.java`
 
 ```java
-// src/main/java/igentuman/mod_template/setup/ModEntries.java
+// src/main/java/igentuman/modtemplate/setup/ModEntries.java
 public static final ModEntry SILVER = addMetalOreMaterial("silver", 0xC0C0C0).build();
 ```
 
@@ -202,7 +202,7 @@ This generates:
 Add your material recipes in `datagen/recipe/`. Create a new class or add to an existing one:
 
 ```java
-// src/main/java/igentuman/mod_template/datagen/recipe/SilverRecipes.java
+// src/main/java/igentuman/modtemplate/datagen/recipe/SilverRecipes.java
 public class SilverRecipes {
     public static void generate(RecipeOutput output) {
         // Ingot from nuggets (shapeless)

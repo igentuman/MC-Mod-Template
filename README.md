@@ -60,12 +60,12 @@ Click **Fork** on GitHub to create your own copy of this template.
 
 ### 2. Rename the Mod ID
 
-Replace all occurrences of `modtemplate` and `mod_template` with your chosen mod ID:
+Replace all occurrences of `modtemplate` and `modtemplate` with your chosen mod ID:
 
 - **`gradle.properties`** - update `mod_id`, `mod_name`, `mod_description`, `mod_authors`, and `maven_group`
 - **`src/main/resources/META-INF/neoforge.mods.toml`** - verify property expansion picks up your new values
 - **`src/main/resources/modtemplate.mixins.json`** - rename the file and update the `"package"` and `"refmap"` fields inside
-- **Base package** - rename `src/main/java/igentuman/mod_template/` to match your `maven_group` and `mod_id`
+- **Base package** - rename `src/main/java/igentuman/modtemplate/` to match your `maven_group` and `mod_id`
 - **`Main.java`** - update the `@Mod("modtemplate")` annotation value
 - **`build.gradle`** - confirm `mixin { add ... }` references your new mixin JSON name
 
@@ -73,7 +73,7 @@ Replace all occurrences of `modtemplate` and `mod_template` with your chosen mod
 
 ### 3. Add Your Content
 
-With the mod ID in place, define your content inside [`setup/ModEntries.java`](./src/main/java/igentuman/mod_template/setup/ModEntries.java) using the `ModEntryBuilder` fluent API. The following documentation pages cover the most common scenarios:
+With the mod ID in place, define your content inside [`setup/ModEntries.java`](./src/main/java/igentuman/modtemplate/setup/ModEntries.java) using the `ModEntryBuilder` fluent API. The following documentation pages cover the most common scenarios:
 
 - [Processors & Items Registration](./docs/processors-registration.md) - machines, simple items, plain blocks
 - [Materials Registration](./docs/materials-registration.md) - full metal material sets (ore, ingot, dust, fluid, …)
@@ -92,7 +92,7 @@ After adding content, run `./gradlew runData` to regenerate assets and data, the
 ## Project Structure
 
 ```
-src/main/java/igentuman/mod_template/
+src/main/java/igentuman/modtemplate/
   Main.java                          - Mod entry point (@Mod)
   registration/
     ModEntryBuilder.java             - Fluent builder for mod entries
